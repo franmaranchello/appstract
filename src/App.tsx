@@ -428,6 +428,9 @@ export default function App() {
   const visibleLedger = visiblePatterns
     .map((pattern) => ledger.find((row) => row.id === pattern.id))
     .filter((row): row is LedgerRow => Boolean(row));
+  // The first teammate through this flow builds the tool; once a version has
+  // been launched, later teammates reuse it or extend it instead.
+  const firstBuild = events.length === 0;
   function toggleRow(id: string) {
     setExpanded((current) => {
       const next = new Set(current);
@@ -707,7 +710,7 @@ export default function App() {
             <div className="match-summary">
               <span className="small-label">
                 <span className="status-dot" />
-                Existing app found
+                {firstBuild ? "Ready to build" : "Existing app found"}
               </span>
               <strong>{app.name}</strong>
               <p className="muted">
@@ -727,7 +730,7 @@ export default function App() {
                 )
               }
             >
-              Open app <Arrow />
+              {firstBuild ? "Build app" : "Open app"} <Arrow />
             </button>
           </>
         ) : null}
@@ -1066,7 +1069,11 @@ export default function App() {
                                 else setModal({ kind: "brief", pattern: row });
                               }}
                             >
-                              {row.id === "clash" ? "Open app" : "Build tool"}
+                              {row.id === "clash"
+                                ? firstBuild
+                                  ? "Build app"
+                                  : "Open app"
+                                : "Build tool"}
                               <Arrow />
                             </button>
                           </div>
@@ -1569,12 +1576,20 @@ export default function App() {
                     setDiscoveryError("");
                     try {
                       sessionStorage.removeItem(DISCOVERY_KEY);
+                      // Without this the saved app and requests return on reload.
+                      localStorage.removeItem(STORAGE_KEY);
+                      setStorageError(false);
                     } catch {
                       /* optional resume */
                     }
                     setRequest("");
                     setRoute(null);
                     setSelectedVersionId("");
+                    setExpanded(new Set());
+                    setSelectedSources(sources.map((source) => source.id));
+                    setSelectedPatternId("clash");
+                    setAnalysisMode("qm");
+                    setPersona("Claudia Barros");
                     setModal(null);
                     navigate("history");
                     setRetry((value) => value + 1);

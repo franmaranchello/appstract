@@ -28,7 +28,7 @@ The goal is to make intelligence accumulate in software your team can inspect, r
 ## Follow one workflow from chat to app
 
 1. **Find the repetition.** Select Priya's BIM coordination history and choose **Find patterns**. The ledger lists each recurring job with its measured sessions, tokens and chat time, the signals behind it and its cadence across the corpus; expand a row for the source conversations and the proposed tool. The separately labeled prepared examples offer a repeatable demo path when QM is unavailable.
-2. **Discover an existing tool.** Appstract checks the clash app's manifest and shows **Existing app found**. Open v1 to inspect the sample building and its clashes.
+2. **Build the tool.** Appstract checks the clash app's manifest and offers **Build app** to the first teammate through the flow. Build v1 to inspect the sample building and its clashes. Once a version exists, the action becomes **Open app** and the panel reports **Existing app found**.
 3. **Bring in a teammate.** Return with **Back to Appstract**, choose another teammate and ask: “I'm color-blind. Can you make the same tool easier to read?”
 4. **Adapt what works.** Choose **Find app** → **Extend app & open v2**. The same tool opens with labels, shapes and non-color markers.
 5. **Keep both versions.** Return to see the requester and version history. Repeat the request to reuse v2, or reopen v1. Refresh preserves the browser-local history.
