@@ -84,6 +84,11 @@ and live two-app/QM verification are separate checks.
 ## Verified setup on 2026-09-27
 
 - Account: `franmaranchello`; team: `radical-labs`; project: `appstract`.
+- CLI 60.1.3 authenticated. Shared Vercel MCP OAuth succeeded; both
+  `search_vercel_documentation` and authenticated `list_teams` succeeded in a
+  fresh Codex session. The user-scoped Vercel plugin is installed and enabled,
+  but its skills were not visible in that session. Plugin loading remains to
+  be verified after refreshing/restarting the client.
 - Site: <https://appstract-nine.vercel.app>.
 - Deployment: `dpl_5TrNirtpS15XnFhPV5VKzEvxNX3C`, Ready, production target.
 - Source: main `b79766f` plus Calgary's deployment configuration. Boston's QM
