@@ -43,6 +43,8 @@ The clash app is a [separate application](https://appstract-clash-detection.verc
 
 The vendor app is bundled at `/apps/vendor-approval/` and includes a return link to Appstract. It was adapted from [Bauhaus Vendor Approval](https://github.com/alexselig/bauhaus-vendor-approval). Its current scope is intake and approval tracking; the full six-category scorecard described in Dana's conversations remains an opportunity.
 
+To try vendor approval, select Dana's history and **Find patterns**, open a supported vendor intake or review pattern, then choose **Open vendor approval**. The prepared vendor example offers the same launch path. Submit a vendor, review its mandatory documents and security checks, approve it, then use **Back to Appstract**. The app library keeps vendor and clash launches and request histories separate.
+
 **GBrain app memory** adds optional local write/search discovery for the validated clash app. With the GBrain CLI configured, Appstract saves an app record and searches it when a teammate submits a request. A result must match the validated manifest's app ID. If GBrain is unavailable, the UI shows **Local catalog fallback** and keeps the deterministic discovery flow working.
 
 ## The evidence behind the demo

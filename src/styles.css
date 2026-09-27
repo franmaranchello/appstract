@@ -2306,6 +2306,9 @@ button.version-item:hover {
   }
 }
 
+.app-picker { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.app-picker .button { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+
 /* ===== Patterns ledger =====
    Ported from the signals design study in findings/. Row = one recurring job:
    headline, signals, measured metrics, cadence, and an expandable plan. */
@@ -2786,3 +2789,192 @@ button.version-item:hover {
 .discovery-status details { font-size: .8rem; }
 .discovery-status li { margin-top: .5rem; }
 .history-aside > .button { margin-top: .75rem; }
+
+/* Live QM patterns retain verified source evidence without prepared metrics. */
+.patterns-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  border: 1px solid var(--rule);
+}
+.pattern-list {
+  min-width: 0;
+  border-right: 1px solid var(--rule);
+}
+.pattern-card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 28px 28px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--paper);
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+}
+.pattern-card:last-child {
+  border-bottom: 0;
+}
+.pattern-card:hover {
+  background: var(--paper-alt);
+}
+.pattern-card.selected {
+  background: var(--paper-alt);
+}
+.pattern-card.selected::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--blue);
+}
+.pattern-number {
+  padding-top: 3px;
+  font:
+    400 13px/24px "IBM Plex Mono",
+    monospace;
+  color: var(--muted);
+}
+.pattern-content {
+  min-width: 0;
+  flex: 1;
+}
+.pattern-content h3 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+.pattern-content p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 21px;
+  max-width: 390px;
+}
+.pattern-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  font:
+    10px/16px "IBM Plex Mono",
+    monospace;
+  color: var(--muted);
+}
+.pattern-metrics > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.evidence-panel {
+  padding: 28px 32px 32px;
+  min-width: 0;
+}
+.evidence-panel > h2 {
+  margin-top: 16px;
+  font-size: 28px;
+  line-height: 1.25;
+}
+.evidence-panel > p {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 22px;
+}
+.evidence-panel > .button {
+  margin-top: 24px;
+  width: 100%;
+}
+.metrics-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 24px;
+}
+.metrics-row > div {
+  flex: 1;
+}
+.metrics-row strong {
+  display: block;
+  font:
+    700 24px/30px "Jost",
+    sans-serif;
+}
+.metrics-row span {
+  display: block;
+  font:
+    10px/16px "IBM Plex Mono",
+    monospace;
+  color: var(--muted);
+}
+.evidence-card {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.evidence-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font:
+    10px/16px "IBM Plex Mono",
+    monospace;
+}
+.quote {
+  margin: 12px 0 0;
+  padding: 0 0 0 16px;
+  border-left: 2px solid var(--blue);
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.pattern-content > .small-label {
+  display: block;
+  font-size: 9px;
+  line-height: 16px;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+.pattern-content > strong {
+  display: block;
+  font:
+    700 24px/28px "Jost",
+    sans-serif;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+.pattern-content > .muted {
+  display: block;
+  font-size: 13px;
+  line-height: 21px;
+}
+
+.evidence-panel .panel-body > h2 {
+  font-size: 28px;
+  line-height: 32px;
+  margin-bottom: 12px;
+}
+.evidence-panel .panel-body > p {
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.evidence-panel { padding: 0; }
+@media (max-width: 1100px) {
+  .pattern-card { padding: 24px; gap: 16px; }
+}
+@media (max-width: 850px) {
+  .patterns-layout { grid-template-columns: 1fr; }
+  .pattern-list { border-right: 0; border-bottom: 1px solid var(--rule); }
+}
+@media (max-width: 600px) {
+  .pattern-card { padding: 24px 20px; gap: 12px; }
+  .pattern-content h3 { font-size: 21px; }
+  .pattern-content > strong { font-size: 22px; }
+  .pattern-metrics { gap: 8px 12px; }
+  .evidence-meta { flex-wrap: wrap; }
+}
