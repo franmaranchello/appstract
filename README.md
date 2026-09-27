@@ -19,6 +19,28 @@ npm run build
 npm run preview
 ```
 
+### Optional GBrain app memory
+
+When the `gbrain` CLI is installed and configured, the Vite development and
+preview servers expose a loopback-only adapter at `/api/gbrain/apps/*`.
+Appstract then:
+
+1. saves the validated clash app as
+   `appstract/apps/appstract-clash-check`;
+2. searches GBrain when a teammate submits a request; and
+3. accepts the result only if its `appId` matches the currently validated app
+   manifest.
+
+Install and initialize GBrain using its official instructions, then start
+Appstract normally. No browser credentials or API keys are required by
+Appstract; the server invokes the user's local CLI with its existing
+configuration.
+
+If GBrain is missing, unconfigured or returns an invalid result, Appstract
+shows **Local catalog fallback** and keeps the existing deterministic flow.
+GBrain is a memory and discovery layer, not proof that an app exists or ran
+successfully.
+
 For a different app address, copy `.env.example` to `.env.local` and set `VITE_CLASH_APP_URL`, then restart Vite. The legacy `VITE_DEMO_APP_URL` remains a fallback. These are public app addresses, never secrets. Cross-origin manifest requests must be allowed by the clash app's server.
 
 ![Appstract history view](docs/mockup-history.png)
@@ -39,7 +61,7 @@ If the app is offline or its manifest is invalid, discovery shows an error and R
 
 Four prepared opportunities use exact excerpts from the supplied synthetic HRA corpus. Analysis is manually curated and routing uses deterministic rules. Version 2 is an allowlisted **configuration extension**, not newly generated code. Persona selection simulates teammates; it is not authentication.
 
-The separate app owns sample geometry, computation and result UI. Appstract owns discovery, request routing and browser-local version/request history. Opening it does not prove a successful computation. No live model, QM or GBrain integration runs here.
+The separate app owns sample geometry, computation and result UI. Appstract owns discovery, request routing and browser-local version/request history. Opening it does not prove a successful computation. The optional GBrain integration performs a real local write/search round trip when configured; no live model or QM integration runs here.
 
 ## Main files
 
@@ -47,6 +69,8 @@ The separate app owns sample geometry, computation and result UI. Appstract owns
 |---|---|
 | `src/App.tsx` | Views, requests and local persistence |
 | `src/registry.ts` | Manifest discovery, errors and saved-version reconciliation |
+| `src/gbrain.ts` | Browser client for optional GBrain app memory |
+| `server/gbrain.ts` | Loopback adapter that safely invokes the local GBrain CLI |
 | `src/domain.ts` | Routing, versions, validation and launch URLs |
 | `src/data.ts` | Prepared patterns and original source excerpts |
 | `src/styles.css` | Modul styling and responsive layout |

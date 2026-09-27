@@ -2441,6 +2441,27 @@ button.version-item:hover {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.gbrain-status {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 8px !important;
+  font:
+    500 11px/18px "IBM Plex Mono",
+    monospace !important;
+  color: var(--blue) !important;
+  overflow-wrap: anywhere;
+}
+.gbrain-status .status-dot {
+  flex: 0 0 auto;
+  margin-top: 6px;
+}
+.gbrain-status.fallback {
+  color: var(--muted) !important;
+}
+.gbrain-status.fallback .status-dot {
+  background: var(--muted);
+}
 .registry-match > .button {
   flex-shrink: 0;
 }
