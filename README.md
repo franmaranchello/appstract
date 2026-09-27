@@ -56,6 +56,7 @@ Fonts and histories are bundled locally. The bundled corpus produces a large-chu
 
 ## References and verification
 
+- [Vercel deployment and QM hosting boundary](docs/vercel-deployment.md)
 - [App integration contract](docs/app-integration-contract.md)
 - [Build plan](docs/hackathon-plan.md)
 - [Modul design system](DESIGN.md)
