@@ -22,6 +22,10 @@ no vendor is contacted. Vendor data persists only in this browser, under the
 upstream `bauhaus.vendor-demo.v1` key. Its Reset demo restores the 14 seeded
 vendors independently of Appstract's request/version reset.
 
+Appstract matches this app to vendor intake, review and due-diligence patterns
+from Dana's live-QM histories, as well as the prepared vendor example. Pattern
+matching does not enable additional vendor functionality.
+
 The prepared source pattern asks for a six-category scorecard. This app covers
 intake, document requirements, security checks and human approval; it does not
 import source questionnaires or generate that full scorecard. Integration is

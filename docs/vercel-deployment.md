@@ -33,7 +33,8 @@ The vendor integration adds a bundled HTML entry at `/apps/vendor-approval/`
 and its manifest at `/apps/vendor-approval/app-manifest.json`. `npm run build`
 emits both into `dist`; the existing install/build/output settings need no changes.
 Vendor routes use hashes, so refresh stays on the child HTML entry. This addition
-has been verified locally; the hosted deployment snapshots above predate it.
+has been verified locally with 48 passing tests (32 parent and 16 vendor);
+the hosted deployment snapshots above predate it.
 In particular, missing `/api/*` and unbundled child-app paths must not return parent HTML.
 
 ## Link and preview

@@ -35,14 +35,18 @@ Unsupported scorecard/import/live automation requests clarify. Clash's non-color
 extension does not apply to vendor approval. Vendor records have their own local
 storage and reset, independent of Appstract's catalog history.
 
-The source conversations remain the prepared evidence for the vendor pattern.
-The imported app covers part of that pattern: simulated intake, document/security
+Vendor discovery supports both the prepared example and live-QM patterns from
+the `vendor-review` source whose titles identify intake, review, approval,
+scorecards or due diligence. Generated QM pattern IDs and the older `other`
+workflow label are supported; vendor negotiation and communication patterns do
+not match. QM evidence is verified against live source conversations.
+The imported app covers part of the source workflow: simulated intake, document/security
 checks and human approval with sample vendors, not the full six-category scorecard.
 No runtime app generation or external vendor communication is claimed.
 
 ## Clash discovery
 
-Parent dev `:5173` uses child `:5186`; parent preview `:4173` uses child `:4186`, retaining the current loopback hostname and protocol. `VITE_CLASH_APP_URL` overrides this; `VITE_DEMO_APP_URL` is the legacy fallback. Addresses accept HTTPS or loopback HTTP, without URL credentials.
+Parent dev `:5174` uses child `:5186`; parent preview `:4174` uses child `:4186`, retaining the current loopback hostname and protocol. `VITE_CLASH_APP_URL` overrides this; `VITE_DEMO_APP_URL` is the legacy fallback. Addresses accept HTTPS or loopback HTTP, without URL credentials.
 
 The child serves `app-manifest.json` from its app root (Vite source: `public/app-manifest.json`) and permits the parent's cross-origin fetch. The current validator requires exactly these fields and values; presentation order may vary:
 

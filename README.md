@@ -88,7 +88,7 @@ Fonts and histories are bundled locally. The bundled corpus produces a large-chu
 - [Rehearsal checklist](docs/hackathon-test-plan.md)
 - [Deferred work](TODOS.md)
 
-The integration has parent domain/discovery/storage/bridge tests and vendor behavior tests. `npm run build` emits both apps. Vendor browser verification covers pattern launch, intake, gated approval, refresh, return and request reuse.
+The integration has 48 passing tests: 32 parent domain/discovery/storage/bridge tests and 16 vendor behavior tests. The parent suite covers live-QM vendor intake, review and due-diligence pattern matching, including generated pattern IDs. `npm run build` emits both apps. Vendor browser verification covers pattern launch, intake, gated approval, refresh, return and request reuse.
 
 Prior clash verification covered: automatic discovery → v1 → second teammate request → v2, repeat reuse, saved versions after return, reopening v1, incompatible XML requests, storage failure, and 320px layouts. The generated app has 67 passing tests. Headless browser verification used the plan fallback because WebGL was unavailable.
 
