@@ -17,11 +17,17 @@ import {
   extendApp,
   routeRequest,
   buildLaunchUrl,
-  validateApp,
   type AppRecord,
   type AppVersion,
 } from "./domain";
-import { discoverClashApp, mergeDiscoveredApp } from "./registry";
+import { discoverApp, mergeDiscoveredApp } from "./registry";
+import {
+  appCatalog,
+  patternAppKind,
+  requestAppKind,
+  type AppKind,
+} from "./catalog";
+import { loadSaved, STORAGE_KEY, type RequestEvent } from "./storage";
 import { discoveryRequest, startDiscovery, getDiscovery } from "./discovery";
 import type { DiscoveryJob } from "./discovery-types";
 const DISCOVERY_KEY = "appstract-qm-discovery-job";
@@ -32,8 +38,6 @@ function savedDiscoveryId() {
     return "";
   }
 }
-const isClashPattern = (pattern?: Pattern) =>
-  pattern?.workflow === "clash-coordination" || pattern?.id === "clash";
 
 type View = "history" | "patterns" | "apps" | "request";
 type ModalKind =
@@ -42,36 +46,6 @@ type ModalKind =
   | { kind: "snap"; snap: Snapshot }
   | { kind: "reset" }
   | null;
-type RequestEvent = {
-  person: string;
-  request: string;
-  action: "REUSE" | "EXTEND";
-  versionId: string;
-  at: string;
-};
-const STORAGE_KEY = "appstract-connected-demo-v1";
-function loadSaved() {
-  try {
-    const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    return {
-      app: validateApp(state.app),
-      analyzed: state.analyzed === true,
-      events: Array.isArray(state.events)
-        ? (state.events
-            .filter(
-              (event: RequestEvent) =>
-                typeof event?.person === "string" &&
-                typeof event?.request === "string" &&
-                typeof event?.versionId === "string" &&
-                ["REUSE", "EXTEND"].includes(event.action),
-            )
-            .slice(-20) as RequestEvent[])
-        : [],
-    };
-  } catch {
-    return { app: null, analyzed: false, events: [] as RequestEvent[] };
-  }
-}
 const saved = loadSaved();
 const initialView = (): View =>
   ["history", "patterns", "apps", "request"].includes(location.hash.slice(1))
@@ -80,9 +54,12 @@ const initialView = (): View =>
 const examples = [
   "Run the clash check on the sample model.",
   "I’m color-blind. Can you make the same tool easier to read with labels and shapes?",
+  "Review vendor documents and security checks for approval.",
   "Group this Navisworks XML export into issues.",
 ];
-function appBaseUrl() {
+function appBaseUrl(kind: AppKind) {
+  if (kind === "vendor")
+    return new URL("/apps/vendor-approval/", location.origin).href;
   if (import.meta.env.VITE_CLASH_APP_URL || import.meta.env.VITE_DEMO_APP_URL)
     return (
       import.meta.env.VITE_CLASH_APP_URL || import.meta.env.VITE_DEMO_APP_URL
@@ -392,10 +369,11 @@ export default function App() {
     error?: string;
   } | null>(null);
   const discoveryBusy = startingDiscovery || discoveryJob?.status === "running";
-  const [app, setApp] = useState<AppRecord | null>(saved.app);
+  const [apps, setApps] = useState(saved.apps);
+  const [activeKind, setActiveKind] = useState<AppKind>(saved.activeKind);
   const [events, setEvents] = useState<RequestEvent[]>(saved.events);
   const [selectedVersionId, setSelectedVersionId] = useState(
-    saved.app?.currentVersionId || "",
+    saved.apps[saved.activeKind]?.currentVersionId || "",
   );
   const [sourceJson, setSourceJson] = useState("Loading QM history…");
   const [modal, setModal] = useState<ModalKind>(null);
@@ -404,16 +382,24 @@ export default function App() {
   const [route, setRoute] = useState<ReturnType<typeof routeRequest> | null>(
     null,
   );
-  const [registryState, setRegistryState] = useState<
-    "idle" | "loading" | "ready" | "error"
-  >("idle");
-  const [registryError, setRegistryError] = useState("");
+  const [registry, setRegistry] = useState<
+    Record<
+      AppKind,
+      {
+        state: "idle" | "loading" | "ready" | "error";
+        error: string;
+      }
+    >
+  >({
+    clash: { state: "idle", error: "" },
+    vendor: { state: "idle", error: "" },
+  });
   const [retry, setRetry] = useState(0);
   const [toast, setToast] = useState("");
   const [storageError, setStorageError] = useState(false);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const appRef = useRef(app);
-  appRef.current = app;
+  const appsRef = useRef(apps);
+  appsRef.current = apps;
   const selected = sources.filter((source) =>
     selectedSources.includes(source.id),
   );
@@ -423,8 +409,16 @@ export default function App() {
   const activePattern =
     visiblePatterns.find((pattern) => pattern.id === selectedPatternId) ||
     visiblePatterns[0];
-  // The ledger shows whichever workflows the current analysis surfaced, in
-  // either mode; ledger copy exists for the four prepared workflow ids.
+  const kind: AppKind =
+    view === "patterns" && analysisMode === "qm"
+      ? (patternAppKind(activePattern) ?? activeKind)
+      : activeKind;
+  const definition = appCatalog[kind];
+  const app = apps[kind];
+  const registryState = registry[kind].state;
+  const appEvents = events.filter((event) => event.appId === definition.appId);
+  // Prepared rows have curated metrics and snapshots. QM results keep their
+  // own verified evidence rather than borrowing prepared-row metrics.
   const visibleLedger = visiblePatterns
     .map((pattern) => ledger.find((row) => row.id === pattern.id))
     .filter((row): row is LedgerRow => Boolean(row));
@@ -493,9 +487,18 @@ export default function App() {
     let active = true;
     setSourceJson("Reading synthetic history from QM…");
     discoveryRequest(`history/${encodeURIComponent(modal.sourceId)}`)
-      .then(value => { if (active) setSourceJson(JSON.stringify(value, null, 2)); })
-      .catch(error => { if (active) setSourceJson(error instanceof Error ? error.message : "QM history unavailable."); });
-    return () => { active = false; };
+      .then((value) => {
+        if (active) setSourceJson(JSON.stringify(value, null, 2));
+      })
+      .catch((error) => {
+        if (active)
+          setSourceJson(
+            error instanceof Error ? error.message : "QM history unavailable.",
+          );
+      });
+    return () => {
+      active = false;
+    };
   }, [modal, analysisMode]);
   async function findPatterns() {
     if (discoveryBusy) return;
@@ -546,11 +549,20 @@ export default function App() {
     setSelectedPatternId("clash");
     navigate("patterns");
   }
-  function persist(nextApp: AppRecord | null, nextEvents = events) {
+  function persist(
+    nextApp: AppRecord | null,
+    nextEvents = events,
+    nextKind = kind,
+  ) {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ app: nextApp, analyzed, events: nextEvents }),
+        JSON.stringify({
+          apps: { ...apps, [nextKind]: nextApp },
+          activeKind: nextKind,
+          analyzed,
+          events: nextEvents,
+        }),
       );
       setStorageError(false);
       return true;
@@ -561,7 +573,7 @@ export default function App() {
   }
   useEffect(() => {
     persist(app, events);
-  }, [app, analyzed, events]);
+  }, [apps, activeKind, analyzed, events]);
   useEffect(() => {
     const onHash = () => setView(initialView());
     addEventListener("hashchange", onHash);
@@ -573,35 +585,39 @@ export default function App() {
     return () => clearTimeout(timeout);
   }, [toast]);
   const shouldDiscover =
-    view === "apps" ||
-    view === "request" ||
-    (view === "patterns" &&
-      analyzed &&
-      visibleLedger.some((row) => row.id === "clash"));
+    view === "apps" || view === "request" || (view === "patterns" && analyzed);
   useEffect(() => {
     if (!shouldDiscover) return;
     const controller = new AbortController();
-    setRegistryState("loading");
-    setRegistryError("");
-    discoverClashApp(appBaseUrl(), controller.signal)
-      .then((discovered) => {
-        if (controller.signal.aborted) return;
-        const next = mergeDiscoveredApp(discovered, appRef.current);
-        setApp(next);
-        setSelectedVersionId((current) =>
-          next.versions.some((version) => version.id === current)
-            ? current
-            : next.currentVersionId,
-        );
-        setRegistryState("ready");
-      })
-      .catch((error) => {
-        if (controller.signal.aborted) return;
-        setRegistryState("error");
-        setRegistryError(
-          error instanceof Error ? error.message : "The app is unavailable.",
-        );
-      });
+    for (const target of Object.keys(appCatalog) as AppKind[]) {
+      setRegistry((current) => ({
+        ...current,
+        [target]: { state: "loading", error: "" },
+      }));
+      discoverApp(target, appBaseUrl(target), controller.signal)
+        .then((discovered) => {
+          if (controller.signal.aborted) return;
+          const next = mergeDiscoveredApp(discovered, appsRef.current[target]);
+          setApps((current) => ({ ...current, [target]: next }));
+          setRegistry((current) => ({
+            ...current,
+            [target]: { state: "ready", error: "" },
+          }));
+        })
+        .catch((error) => {
+          if (controller.signal.aborted) return;
+          setRegistry((current) => ({
+            ...current,
+            [target]: {
+              state: "error",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "The app is unavailable.",
+            },
+          }));
+        });
+    }
     return () => controller.abort();
   }, [shouldDiscover, retry]);
   function navigate(next: View) {
@@ -623,7 +639,8 @@ export default function App() {
       return;
     }
     // Save before same-tab navigation so the return journey keeps the exact version.
-    if (!persist(targetApp, nextEvents)) {
+    const targetKind = targetApp.id === appCatalog.vendor.appId ? "vendor" : "clash";
+    if (!persist(targetApp, nextEvents, targetKind)) {
       setToast(
         "Could not save this version. Allow browser storage, then try opening the app again.",
       );
@@ -631,32 +648,40 @@ export default function App() {
     }
     location.assign(url);
   }
-  function openVersion(version = selectedVersion) {
-    if (!app || !version || registryState !== "ready") return;
+  function openVersion(
+    version = selectedVersion,
+    targetKind = kind,
+    pattern = activePattern,
+  ) {
+    const targetApp = apps[targetKind];
+    const targetDefinition = appCatalog[targetKind];
+    if (!targetApp || !version || registry[targetKind].state !== "ready") return;
+    setActiveKind(targetKind);
     setSelectedVersionId(version.id);
     const person =
       view === "patterns"
-        ? sources.find((source) => source.id === activePattern?.sourceId)
+        ? sources.find((source) => source.id === pattern?.sourceId)
             ?.name || "Teammate"
         : persona;
     const nextEvents = [
       ...events,
       {
         person,
+        appId: targetApp.id,
         request:
           view === "patterns"
-            ? "Run clash detection on the sample model."
-            : request || "Open clash detection.",
+            ? targetDefinition.request
+            : request || `Open ${targetDefinition.name}.`,
         action: "REUSE" as const,
         versionId: version.id,
         at: new Date().toISOString(),
       },
     ].slice(-20);
     setEvents(nextEvents);
-    launch(app, version, nextEvents);
+    launch(targetApp, version, nextEvents);
   }
   function extendAndOpen() {
-    if (!app || registryState !== "ready") return;
+    if (!app || kind !== "clash" || registryState !== "ready") return;
     const next = extendApp(app, request, persona);
     const version = next.versions.find(
       (item) => item.id === next.currentVersionId,
@@ -665,22 +690,37 @@ export default function App() {
       ...events,
       {
         person: persona,
+        appId: app.id,
         request,
         action: "EXTEND" as const,
         versionId: version.id,
         at: new Date().toISOString(),
       },
     ].slice(-20);
-    setApp(next);
+    setApps((current) => ({ ...current, [kind]: next }));
     setSelectedVersionId(version.id);
     setEvents(nextEvents);
     launch(next, version, nextEvents);
   }
   function checkRequest() {
-    if (registryState !== "ready" || !app) return;
-    setRoute(routeRequest(request, app));
+    const target = requestAppKind(request, kind);
+    setActiveKind(target);
+    setSelectedVersionId("");
+    setRoute(
+      routeRequest(
+        request,
+        registry[target].state === "ready" ? apps[target] : null,
+      ),
+    );
   }
-  function RegistryMatch() {
+  function RegistryMatch({
+    targetKind = kind,
+    pattern = activePattern,
+  }: { targetKind?: AppKind; pattern?: Pattern } = {}) {
+    const app = apps[targetKind];
+    const definition = appCatalog[targetKind];
+    const registryState = registry[targetKind].state;
+    const registryError = registry[targetKind].error;
     return (
       <div className="registry-match" aria-live="polite">
         {registryState === "loading" || registryState === "idle" ? (
@@ -688,7 +728,7 @@ export default function App() {
         ) : registryState === "error" ? (
           <>
             <div>
-              <strong>Clash detection is unavailable</strong>
+              <strong>{definition.name} is unavailable</strong>
               <p className="muted">Retry when the app is running.</p>
               <details>
                 <summary>Details</summary>
@@ -711,7 +751,7 @@ export default function App() {
               </span>
               <strong>{app.name}</strong>
               <p className="muted">
-                Sample model checks · v
+                {definition.summary} · v
                 {app.versions.find(
                   (version) => version.id === app.currentVersionId,
                 )?.number || 1}
@@ -724,6 +764,8 @@ export default function App() {
                   app.versions.find(
                     (version) => version.id === app.currentVersionId,
                   ),
+                  targetKind,
+                  pattern,
                 )
               }
             >
@@ -731,6 +773,34 @@ export default function App() {
             </button>
           </>
         ) : null}
+      </div>
+    );
+  }
+  function AppPicker() {
+    return (
+      <div className="app-picker" aria-label="Apps">
+        {(Object.keys(appCatalog) as AppKind[]).map((target) => (
+          <button
+            key={target}
+            className={`button ${kind === target ? "primary" : "secondary"}`}
+            aria-pressed={kind === target}
+            onClick={() => {
+              setActiveKind(target);
+              setSelectedVersionId("");
+              setRoute(null);
+              setRequest("");
+            }}
+          >
+            {appCatalog[target].name}
+            <span className="caption">
+              {registry[target].state === "ready"
+                ? "Available"
+                : registry[target].state === "error"
+                  ? "Unavailable"
+                  : "Checking…"}
+            </span>
+          </button>
+        ))}
       </div>
     );
   }
@@ -928,9 +998,10 @@ export default function App() {
                   submittals.
                 </p>
                 <p className="caption muted">
-                  QM is a connected history source. Appstract reads the synthetic
-                  conversations and shows saved analysis, checked against the live
-                  history. Each pattern cites at least two sessions.
+                  QM is a connected history source. Appstract reads the
+                  synthetic conversations and shows saved analysis, checked
+                  against the live history. Each pattern cites at least two
+                  sessions.
                 </p>
                 <p className="caption" role="status">
                   {qmConnection === null
@@ -957,7 +1028,7 @@ export default function App() {
           <>
             <div className="section-bar">
               <h2>
-                {analyzed ? visibleLedger.length : 0} recurring workflows
+                {analyzed ? visiblePatterns.length : 0} recurring workflows
               </h2>
               <span className="small-label">
                 {analysisMode === "qm" ? "Source: QM" : "Prepared examples"}
@@ -983,8 +1054,10 @@ export default function App() {
                   )}
                   {discoveryJob?.readAt && (
                     <p className="caption muted">
-                      Read from QM {new Date(discoveryJob.readAt).toLocaleTimeString()}.
-                      {discoveryJob.analyzedAt && ` Analysis saved ${new Date(discoveryJob.analyzedAt).toLocaleString()}.`}
+                      Read from QM{" "}
+                      {new Date(discoveryJob.readAt).toLocaleTimeString()}.
+                      {discoveryJob.analyzedAt &&
+                        ` Analysis saved ${new Date(discoveryJob.analyzedAt).toLocaleString()}.`}
                     </p>
                   )}
                   {discoveryError && discoveryId && (
@@ -1000,7 +1073,7 @@ export default function App() {
                   )}
                 </div>
               )}
-            {!analyzed || !visibleLedger.length ? (
+            {!analyzed || !visiblePatterns.length ? (
               <div className="empty-state">
                 <h2>
                   {discoveryBusy
@@ -1018,10 +1091,117 @@ export default function App() {
                   Choose histories <Arrow />
                 </button>
               </div>
+            ) : analysisMode === "qm" ? (
+              <div className="patterns-layout">
+                <section className="pattern-list" aria-label="Patterns">
+                  <div className="panel-heading">
+                    <span className="small-label">Pattern</span>
+                    <span className="small-label">Recurrence</span>
+                  </div>
+                  {visiblePatterns.map((pattern) => (
+                    <button
+                      className={`pattern-card ${activePattern.id === pattern.id ? "selected" : ""}`}
+                      key={pattern.id}
+                      onClick={() => {
+                        setSelectedPatternId(pattern.id);
+                        const matchedKind = patternAppKind(pattern);
+                        if (matchedKind) setActiveKind(matchedKind);
+                      }}
+                      aria-pressed={activePattern.id === pattern.id}
+                    >
+                      <span className="pattern-number">
+                        {String(pattern.rank).padStart(2, "0")}
+                      </span>
+                      <span className="pattern-content">
+                        <span className="small-label">{pattern.category}</span>
+                        <strong>{pattern.title}</strong>
+                        <span className="muted">{pattern.description}</span>
+                        <span className="pattern-metrics">
+                          <span className="mono">
+                            {pattern.sessionIds.length} sessions
+                          </span>
+                          <span>1 requester</span>
+                        </span>
+                      </span>
+                      <Arrow />
+                    </button>
+                  ))}
+                </section>
+                <aside className="evidence-panel">
+                  <div className="panel-heading">
+                    <h3>{activePattern.title}</h3>
+                  </div>
+                  <div className="panel-body">
+                    {patternAppKind(activePattern) && <RegistryMatch />}
+                    <div className="metrics-row">
+                      <div>
+                        <strong>{activePattern.sessionIds.length}</strong>
+                        <span>Recurring sessions</span>
+                      </div>
+                      <div>
+                        <strong>1</strong>
+                        <span>Requester</span>
+                      </div>
+                    </div>
+                    <h3>Source requests</h3>
+                    {activePattern.evidence.slice(0, 3).map((evidence) => (
+                      <article className="evidence-card" key={evidence.id}>
+                        <div className="evidence-meta">
+                          <strong>{evidence.author.split(" ")[0]}</strong>
+                          <span className="mono">
+                            {evidence.sessionId} · {evidence.date}
+                          </span>
+                        </div>
+                        <blockquote className="quote">
+                          “{evidence.quote}”
+                        </blockquote>
+                      </article>
+                    ))}
+                    <details className="pattern-scope">
+                      <summary>Workflow details</summary>
+                      <div className="detail-grid">
+                        <div>
+                          <span className="small-label">Input</span>
+                          <p>{activePattern.input}</p>
+                        </div>
+                        <div>
+                          <span className="small-label">Output</span>
+                          <p>{activePattern.output}</p>
+                        </div>
+                      </div>
+                      {patternAppKind(activePattern) === "clash" && (
+                        <p className="caption muted">
+                          The existing app checks sample geometry. It does not
+                          import or group Navisworks exports.
+                        </p>
+                      )}
+                      {patternAppKind(activePattern) === "vendor" && (
+                        <p className="caption muted">
+                          The app demonstrates intake, document and security
+                          checks, and human approval with sample vendors. It
+                          does not import questionnaires or produce the full
+                          six-category scorecard.
+                        </p>
+                      )}
+                    </details>
+                    {!patternAppKind(activePattern) && (
+                      <button
+                        className="button secondary full-width"
+                        onClick={() =>
+                          setModal({ kind: "brief", pattern: activePattern })
+                        }
+                      >
+                        View proposed app <Arrow />
+                      </button>
+                    )}
+                  </div>
+                </aside>
+              </div>
             ) : (
               <div className="ledger">
                 {visibleLedger.map((row) => {
                   const open = expanded.has(row.id);
+                  const rowKind = patternAppKind(row);
                   return (
                     <Fragment key={row.id}>
                       <article className="lrow">
@@ -1062,11 +1242,14 @@ export default function App() {
                             <button
                               className="split-build"
                               onClick={() => {
-                                if (row.id === "clash") navigate("apps");
-                                else setModal({ kind: "brief", pattern: row });
+                                if (rowKind) {
+                                  setActiveKind(rowKind);
+                                  setSelectedVersionId("");
+                                  navigate("apps");
+                                } else setModal({ kind: "brief", pattern: row });
                               }}
                             >
-                              {row.id === "clash" ? "Open app" : "Build tool"}
+                              {rowKind ? "Open app" : "Build tool"}
                               <Arrow />
                             </button>
                           </div>
@@ -1078,7 +1261,7 @@ export default function App() {
                           id={`plan-${row.id}`}
                           aria-label={`Plan for ${row.title}`}
                         >
-                          {row.id === "clash" && <RegistryMatch />}
+                          {rowKind && <RegistryMatch targetKind={rowKind} pattern={row} />}
                           <div>
                             <h4 className="label">
                               Outputs from the chats · {row.snapshots.length}
@@ -1138,9 +1321,10 @@ export default function App() {
             <div className="section-bar">
               <h2>App library</h2>
               <span className="small-label">
-                {app ? "1 app" : "Checking apps"}
+                {Object.values(apps).filter(Boolean).length} apps
               </span>
             </div>
+            <AppPicker />
             {!app ? (
               <RegistryMatch />
             ) : (
@@ -1151,10 +1335,12 @@ export default function App() {
                       <i />
                       <i />
                     </div>
-                    <span className="tag">Sample model</span>
+                    <span className="tag">
+                      {kind === "vendor" ? "Sample vendors" : "Sample model"}
+                    </span>
                   </div>
                   <h2>{app.name}</h2>
-                  <p>Check structural and mechanical elements for clashes.</p>
+                  <p>{definition.description}</p>
                   <div className="app-version-display">
                     <span className="version-badge">
                       v{selectedVersion?.number}
@@ -1168,7 +1354,7 @@ export default function App() {
                       <span className="muted">
                         {selectedVersion?.presentation === "non-color"
                           ? "Color-independent markers and element labels"
-                          : "3D model, clash list and element details"}
+                          : definition.detail}
                       </span>
                     </div>
                   </div>
@@ -1183,8 +1369,14 @@ export default function App() {
                     <button
                       className="button secondary"
                       onClick={() => {
-                        setRequest(examples[1]);
-                        setPersona("Claudia Barros");
+                        setRequest(
+                          kind === "vendor" ? definition.request : examples[1],
+                        );
+                        setPersona(
+                          kind === "vendor"
+                            ? "Dana Whitfield"
+                            : "Claudia Barros",
+                        );
                         setRoute(null);
                         navigate("request");
                       }}
@@ -1244,14 +1436,14 @@ export default function App() {
                   </div>
                   <div className="panel-body">
                     <h3>Requests</h3>
-                    {!events.length ? (
+                    {!appEvents.length ? (
                       <p className="muted">
                         Requests appear here when a teammate uses or extends the
                         app.
                       </p>
                     ) : (
                       <div className="request-history">
-                        {[...events]
+                        {[...appEvents]
                           .reverse()
                           .slice(0, 4)
                           .map((event, index) => (
@@ -1285,6 +1477,7 @@ export default function App() {
               <h2>Ask a teammate's app</h2>
               <span className="small-label">Halden & Reyes</span>
             </div>
+            <AppPicker />
             <div className="request-layout">
               <section className="composer-panel">
                 <div className="panel-body">
@@ -1298,6 +1491,7 @@ export default function App() {
                       <option>Claudia Barros</option>
                       <option>Jenna Liu</option>
                       <option>Priya Raghunathan</option>
+                      <option>Dana Whitfield</option>
                     </select>
                   </label>
                   <label className="field">
@@ -1310,7 +1504,11 @@ export default function App() {
                         setRequest(event.target.value);
                         setRoute(null);
                       }}
-                      placeholder="I’m color-blind. Can you make the clash report easier to read?"
+                      placeholder={
+                        kind === "vendor"
+                          ? "Review vendor documents and security checks for approval."
+                          : "I’m color-blind. Can you make the clash report easier to read?"
+                      }
                     />
                   </label>
                   <div className="form-actions">
@@ -1319,7 +1517,7 @@ export default function App() {
                     </span>
                     <button
                       className="button primary"
-                      disabled={!request.trim() || registryState !== "ready"}
+                      disabled={!request.trim()}
                       onClick={checkRequest}
                     >
                       Find app <Arrow />
@@ -1332,6 +1530,11 @@ export default function App() {
                         key={example}
                         onClick={() => {
                           setRequest(example);
+                          setActiveKind(
+                            example === examples[1]
+                              ? "clash"
+                              : requestAppKind(example, kind),
+                          );
                           setRoute(null);
                         }}
                       >
@@ -1504,7 +1707,9 @@ export default function App() {
         >
           {modal.kind === "json" && (
             <pre className="json-view" tabIndex={0}>
-              {analysisMode === "qm" ? sourceJson : getHistoryJson(modal.sourceId)}
+              {analysisMode === "qm"
+                ? sourceJson
+                : getHistoryJson(modal.sourceId)}
             </pre>
           )}
           {modal.kind === "snap" && (
@@ -1545,8 +1750,9 @@ export default function App() {
           {modal.kind === "reset" && (
             <>
               <p>
-                Clear this browser's requests and v2 extension. The existing
-                clash app will still be available as v1.
+                Clear this browser's Appstract requests and v2 extension. Both
+                apps will still be available as v1. Vendor records are managed
+                in the vendor app.
               </p>
               <div className="modal-footer">
                 <button
@@ -1559,8 +1765,9 @@ export default function App() {
                   className="button primary"
                   disabled={discoveryBusy}
                   onClick={() => {
-                    setApp(null);
-                    appRef.current = null;
+                    setApps({ clash: null, vendor: null });
+                    appsRef.current = { clash: null, vendor: null };
+                    setActiveKind("clash");
                     setEvents([]);
                     setAnalyzed(false);
                     setPatterns([]);

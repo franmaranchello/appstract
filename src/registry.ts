@@ -1,4 +1,5 @@
-import { createDemoApp, validateApp, type AppRecord } from "./domain.ts";
+import { appCatalog, appKindForId, type AppKind } from "./catalog.ts";
+import { createCatalogApp, validateApp, type AppRecord } from "./domain.ts";
 
 export class AppDiscoveryError extends Error {
   readonly code: string;
@@ -31,14 +32,18 @@ function appRoot(value: string): URL {
   } catch {
     throw new AppDiscoveryError(
       "INVALID_URL",
-      "The clash app address must use HTTPS or a local development address.",
+      "The app address must use HTTPS or a local development address.",
     );
   }
 }
 
-function manifestIsValid(value: unknown): value is { name: string } {
+function manifestIsValid(
+  value: unknown,
+  kind: AppKind,
+): value is { name: string } {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const m = value as Record<string, unknown>;
+  const definition = appCatalog[kind];
   const keys = [
     "schemaVersion",
     "appId",
@@ -50,21 +55,28 @@ function manifestIsValid(value: unknown): value is { name: string } {
   return (
     Object.keys(m).every((key) => keys.includes(key)) &&
     m.schemaVersion === 1 &&
-    m.appId === "appstract.clash-check" &&
-    m.name === "Clash detection" &&
-    m.fixtureId === "sample-building" &&
-    m.baselineVersionId === "clash-v1" &&
+    m.appId === definition.appId &&
+    m.name === definition.name &&
+    m.fixtureId === definition.fixtureId &&
+    m.baselineVersionId === definition.baselineVersionId &&
     Array.isArray(m.presentations) &&
-    m.presentations.length === 2 &&
-    m.presentations.includes("baseline") &&
-    m.presentations.includes("non-color")
+    m.presentations.length === definition.presentations.length &&
+    definition.presentations.every((presentation) =>
+      (m.presentations as unknown[]).includes(presentation),
+    )
   );
 }
 
-export async function discoverClashApp(
+export function discoverClashApp(baseUrl: string, signal?: AbortSignal) {
+  return discoverApp("clash", baseUrl, signal);
+}
+
+export async function discoverApp(
+  kind: AppKind,
   baseUrl: string,
   signal?: AbortSignal,
 ): Promise<AppRecord> {
+  const definition = appCatalog[kind];
   const root = appRoot(baseUrl);
   const controller = new AbortController();
   let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -86,7 +98,7 @@ export async function discoverClashApp(
       reject(
         new AppDiscoveryError(
           "DISCOVERY_TIMEOUT",
-          "The clash app did not respond. Start it and try again.",
+          `${definition.name} did not respond. Start it and try again.`,
         ),
       );
     }, 4000);
@@ -101,7 +113,7 @@ export async function discoverClashApp(
       if (!response.ok)
         throw new AppDiscoveryError(
           "DISCOVERY_FAILED",
-          "The clash app is unavailable. Start it and try again.",
+          `${definition.name} is unavailable. Start it and try again.`,
         );
       let manifest: unknown;
       try {
@@ -109,16 +121,16 @@ export async function discoverClashApp(
       } catch {
         throw new AppDiscoveryError(
           "INVALID_MANIFEST",
-          "The clash app returned an unreadable manifest.",
+          `${definition.name} returned an unreadable manifest.`,
         );
       }
-      if (!manifestIsValid(manifest))
+      if (!manifestIsValid(manifest, kind))
         throw new AppDiscoveryError(
           "INVALID_MANIFEST",
-          "The running app does not match the supported clash app contract.",
+          `The running app does not match the supported ${definition.name} contract.`,
         );
       return {
-        ...createDemoApp("Open the sample building clash check", manifest.name),
+        ...createCatalogApp(kind, definition.request),
         url: root.toString(),
       };
     };
@@ -132,7 +144,7 @@ export async function discoverClashApp(
       );
     throw new AppDiscoveryError(
       "DISCOVERY_FAILED",
-      "Could not reach the clash app. Start it and try again.",
+      `Could not reach ${definition.name}. Start it and try again.`,
     );
   } finally {
     clearTimeout(timeout);
@@ -145,12 +157,16 @@ export function mergeDiscoveredApp(
   saved?: AppRecord | null,
 ): AppRecord {
   const valid = validateApp(saved);
-  if (
-    discovered.id !== "appstract.clash-check" ||
-    !valid ||
-    valid.id !== discovered.id
-  )
-    return discovered;
+  const kind = appKindForId(discovered.id);
+  if (!kind || !valid || valid.id !== discovered.id) return discovered;
+  if (kind === "vendor") {
+    return valid.versions.length === 1 &&
+      valid.versions[0].id === "vendor-v1" &&
+      valid.versions[0].number === 1 &&
+      valid.versions[0].presentation === "baseline"
+      ? { ...valid, name: discovered.name, url: discovered.url }
+      : discovered;
+  }
   const allowed = valid.versions.every(
     (version) =>
       (version.id === "clash-v1" &&
