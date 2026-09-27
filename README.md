@@ -106,7 +106,7 @@ cp .env.example .env.local
 
 The clash server must allow cross-origin manifest requests and accept the parent origin for its return link. `VITE_CLASH_APP_URL` is public configuration; `VITE_DEMO_APP_URL` remains a legacy fallback.
 
-With the local QM test instance and analyzer configured, the demo lifecycle is:
+Follow the [QM setup guide](docs/qm-discovery.md) to configure the local test instance and analyzer. The demo lifecycle is:
 
 ```bash
 npm run qm:seed       # Import the synthetic histories into QM.
@@ -132,6 +132,7 @@ Automatic continuous monitoring, arbitrary app generation and production deploym
 
 - [Chat histories and schema](chat-histories/README.md) — the source material.
 - [Signals explorer](findings/README.md) — opportunities, evidence and build briefs.
+- [QM setup and demo architecture](docs/qm-discovery.md) — history import, analysis and the authenticated bridge.
 - [App integration contract](docs/app-integration-contract.md) — manifests, launches and version behavior.
 - [Deployment notes](docs/vercel-deployment.md) — hosting setup and dated verification records.
 - [Modul design system](DESIGN.md) — visual language.

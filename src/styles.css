@@ -2511,3 +2511,14 @@ button.version-item:hover {
     scroll-behavior: auto !important;
   }
 }
+
+.discovery-status {
+  border: 1px solid var(--ink, #242424);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  overflow-wrap: anywhere;
+}
+.discovery-status p { margin: 0 0 .75rem; }
+.discovery-status details { font-size: .8rem; }
+.discovery-status li { margin-top: .5rem; }
+.history-aside > .button { margin-top: .75rem; }

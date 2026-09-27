@@ -7,7 +7,10 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --import tsx --test src/*.test.ts"
+    "test": "node --import tsx --test src/*.test.ts server/*.test.ts",
+    "qm:seed": "node --import tsx scripts/seed-qm.ts",
+    "qm:analyze": "node --import tsx scripts/build-qm-demo.ts",
+    "qm:bridge": "node --import tsx scripts/qm-bridge.ts"
   },
   "dependencies": {
     "@fontsource/archivo": "^5.3.0",
