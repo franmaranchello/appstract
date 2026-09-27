@@ -15,6 +15,7 @@ import {
   type AppVersion,
 } from "./domain";
 import { discoverClashApp, mergeDiscoveredApp } from "./registry";
+import { findAppsInGBrain, rememberAppInGBrain } from "./gbrain";
 
 type View = "history" | "patterns" | "apps" | "request";
 type ModalKind =
@@ -29,6 +30,11 @@ type RequestEvent = {
   versionId: string;
   at: string;
 };
+type GBrainState =
+  | { status: "idle" }
+  | { status: "remembering" | "searching" }
+  | { status: "ready"; pageSlug: string; matched: boolean }
+  | { status: "fallback"; message: string };
 const STORAGE_KEY = "appstract-connected-demo-v1";
 function loadSaved() {
   try {
@@ -142,6 +148,9 @@ export default function App() {
   const [retry, setRetry] = useState(0);
   const [toast, setToast] = useState("");
   const [storageError, setStorageError] = useState(false);
+  const [gbrainState, setGBrainState] = useState<GBrainState>({
+    status: "idle",
+  });
   const titleRef = useRef<HTMLHeadingElement>(null);
   const appRef = useRef(app);
   appRef.current = app;
@@ -154,6 +163,7 @@ export default function App() {
   const activePattern =
     visiblePatterns.find((pattern) => pattern.id === selectedPatternId) ||
     visiblePatterns[0];
+  const clashPattern = patterns.find((pattern) => pattern.id === "clash");
   const selectedVersion =
     app?.versions.find((version) => version.id === selectedVersionId) ||
     app?.versions.find((version) => version.id === app.currentVersionId);
@@ -204,6 +214,44 @@ export default function App() {
             : next.currentVersionId,
         );
         setRegistryState("ready");
+        if (!clashPattern) return;
+        setGBrainState({ status: "remembering" });
+        void rememberAppInGBrain(
+          next,
+          {
+            title: clashPattern.title,
+            evidence: clashPattern.evidence.map(
+              ({ sessionId, quote, author }) => ({
+                sessionId,
+                quote,
+                author,
+              }),
+            ),
+          },
+          controller.signal,
+        )
+          .then((result) => {
+            if (controller.signal.aborted) return;
+            setGBrainState(
+              result.available
+                ? {
+                    status: "ready",
+                    pageSlug: result.pageSlug,
+                    matched: false,
+                  }
+                : { status: "fallback", message: result.error },
+            );
+          })
+          .catch((error) => {
+            if (controller.signal.aborted) return;
+            setGBrainState({
+              status: "fallback",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "GBrain could not remember this app.",
+            });
+          });
       })
       .catch((error) => {
         if (controller.signal.aborted) return;
@@ -282,9 +330,62 @@ export default function App() {
     setEvents(nextEvents);
     launch(next, version, nextEvents);
   }
-  function checkRequest() {
+  async function checkRequest() {
     if (registryState !== "ready" || !app) return;
+    setGBrainState({ status: "searching" });
+    try {
+      const result = await findAppsInGBrain(request);
+      if (!result.available) {
+        setGBrainState({ status: "fallback", message: result.error });
+      } else {
+        const match = result.matches.find((candidate) => candidate.appId === app.id);
+        setGBrainState(
+          match
+            ? { status: "ready", pageSlug: match.pageSlug, matched: true }
+            : {
+                status: "fallback",
+                message:
+                  "GBrain did not return the currently verified app. Appstract used its local catalog.",
+              },
+        );
+      }
+    } catch (error) {
+      setGBrainState({
+        status: "fallback",
+        message:
+          error instanceof Error
+            ? error.message
+            : "GBrain search was unavailable.",
+      });
+    }
     setRoute(routeRequest(request, app));
+  }
+  function GBrainStatus() {
+    if (gbrainState.status === "idle") return null;
+    let message: string;
+    switch (gbrainState.status) {
+      case "remembering":
+        message = "Saving app to GBrain…";
+        break;
+      case "searching":
+        message = "Searching GBrain…";
+        break;
+      case "ready":
+        message = `${gbrainState.matched ? "Found through GBrain" : "Saved in GBrain"} · ${gbrainState.pageSlug}`;
+        break;
+      case "fallback":
+        message = `Local catalog fallback · ${gbrainState.message}`;
+        break;
+    }
+    return (
+      <p
+        className={`gbrain-status ${gbrainState.status === "fallback" ? "fallback" : ""}`}
+        aria-live="polite"
+      >
+        <span className="status-dot" aria-hidden="true" />
+        {message}
+      </p>
+    );
   }
   function RegistryMatch() {
     return (
@@ -322,6 +423,7 @@ export default function App() {
                   (version) => version.id === app.currentVersionId,
                 )?.number || 1}
               </p>
+              <GBrainStatus />
             </div>
             <button
               className="button primary"
@@ -838,10 +940,17 @@ export default function App() {
                     </span>
                     <button
                       className="button primary"
-                      disabled={!request.trim() || registryState !== "ready"}
-                      onClick={checkRequest}
+                      disabled={
+                        !request.trim() ||
+                        registryState !== "ready" ||
+                        gbrainState.status === "searching"
+                      }
+                      onClick={() => void checkRequest()}
                     >
-                      Find app <Arrow />
+                      {gbrainState.status === "searching"
+                        ? "Searching…"
+                        : "Find app"}{" "}
+                      <Arrow />
                     </button>
                   </div>
                   <div className="example-requests">
@@ -911,6 +1020,7 @@ export default function App() {
                       </span>
                       <h2>{route.title}</h2>
                       <p>{route.reason}</p>
+                      <GBrainStatus />
                       {app &&
                         (route.action === "EXTEND" ||
                           route.action === "REUSE") && (

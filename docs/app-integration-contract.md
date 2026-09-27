@@ -1,6 +1,6 @@
 # Appstract ↔ clash app: implemented mockup contract
 
-Appstract automatically discovers the separately running clash app. It owns browser-local app/version/request history and routing. The separate repository owns the canonical sample, computation and result UI. There is no Connect or registration UI, backend registry, generated-code pipeline or result receipt protocol.
+Appstract automatically discovers the separately running clash app. It owns browser-local app/version/request history and routing. The separate repository owns the canonical sample, computation and result UI. There is no Connect or registration UI, generated-code pipeline or result receipt protocol. An optional loopback adapter uses GBrain as a durable app-memory and retrieval layer.
 
 ## Discovery
 
@@ -51,8 +51,50 @@ Both versions use the same executable app with different supported presentation 
 
 Unrelated finance/vendor/submittal requests and unsupported XML/IFC/issue-triage requests clarify rather than matching this app. Missing or offline discovery never authorizes automatic CREATE. Requesters and version history persist in this browser; persona switching is a simulation, not shared authentication.
 
+## Optional GBrain memory and retrieval
+
+The Vite development and preview servers mount same-origin endpoints under
+`/api/gbrain/apps/`. They accept only bounded JSON POST requests and reject
+foreign `Origin` headers. The adapter invokes `gbrain` with `execFile`, never
+through a shell.
+
+After successful manifest discovery, Appstract writes a canonical Markdown page
+with:
+
+- slug `appstract/apps/appstract-clash-check`;
+- a versioned `APPSTRACT_APP_RECORD_V1` JSON record;
+- supported presentations;
+- the manifest URL and verification time; and
+- exact source-session evidence from the prepared corpus.
+
+The adapter writes with:
+
+```bash
+gbrain put appstract/apps/appstract-clash-check --force --json
+```
+
+and supplies the complete page on stdin. The dedicated slug is Appstract-owned,
+so force replacement keeps its verification timestamp and supported
+presentations current.
+
+For teammate requests, the adapter runs:
+
+```bash
+gbrain search "<request> appstract app catalog" --limit 5 --json
+```
+
+Only results under `appstract/apps/` with a valid versioned record are returned
+to the browser. Appstract then requires an exact `appId` match against the
+currently discovered manifest before labeling the request **Found through
+GBrain**. The existing deterministic router remains the authority for reuse,
+extension and clarification.
+
+Missing CLI/configuration, timeouts, process failures, malformed JSON, invalid
+records and stale app IDs are explicit **Local catalog fallback** states. They
+never block the existing manifest discovery or routing flow.
+
 ## Verification boundary
 
 Fifteen domain/discovery tests pass, including strict manifests, offline/timeout/cancellation failures, v1 preservation, requester persistence, safe launch/return URLs and repeated-request reuse. Cross-app browser verification passed on both dev and production-preview ports: automatic discovery, v1 launch, second-teammate extension, v2 launch, repeat reuse, return persistence and reopening v1. Both presentations showed the same six sample clashes; the child has 67 passing tests. Headless visual checks used the plan fallback because WebGL was unavailable.
 
-QM, GBrain and live discovery from conversations are not connected. Opportunity cards remain prepared analysis of the checked-in synthetic corpus. Historical planning documents describe broader proposals, not current runtime guarantees.
+QM and live discovery from conversations are not connected. Opportunity cards remain prepared analysis of the checked-in synthetic corpus. GBrain is connected only for app-memory write/search and is optional at runtime. Historical planning documents describe broader proposals, not current runtime guarantees.
