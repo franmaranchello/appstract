@@ -1,3 +1,5 @@
+import { opportunities, signalDefs } from "./opportunities";
+import type { Opportunity, SnapshotSpec } from "./opportunities";
 import clashHistory from "../chat-histories/json/01-clash-detection-priya-raghunathan.json";
 import financeHistory from "../chat-histories/json/02-project-finance-marcus-oyelaran.json";
 import vendorHistory from "../chat-histories/json/03-vendor-review-dana-whitfield.json";
@@ -305,3 +307,165 @@ export const patterns: Pattern[] = [
     ],
   }),
 ];
+
+// ---------------------------------------------------------------------------
+// Ledger view: derived measurements over the same prepared patterns.
+// Counts come from the checked-in transcripts, not from a model.
+// ---------------------------------------------------------------------------
+
+interface RawTurn {
+  n: number;
+  role: string;
+  at: string;
+  content: string;
+}
+interface RawSession {
+  id: string;
+  title: string;
+  started_at: string;
+  model: string;
+  project: string;
+  tags: string[];
+  turns: RawTurn[];
+}
+
+const sessionIndex = new Map<string, { session: RawSession; persona: string }>();
+for (const history of histories) {
+  for (const session of history.sessions as RawSession[]) {
+    sessionIndex.set(session.id, {
+      session,
+      persona: history.persona.name.split(" ")[0],
+    });
+  }
+}
+function lookup(sessionId: string) {
+  const entry = sessionIndex.get(sessionId);
+  if (!entry) throw new Error(`Unknown session: ${sessionId}`);
+  return entry;
+}
+// A transcript token estimate, not a billed count: characters / 4.
+const tokensIn = (session: RawSession) =>
+  session.turns.reduce(
+    (sum, turn) => sum + Math.ceil(turn.content.length / 4),
+    0,
+  );
+const minutesIn = (session: RawSession) => {
+  const stamps = session.turns
+    .map((turn) => Date.parse(turn.at || session.started_at))
+    .filter((value) => Number.isFinite(value));
+  if (stamps.length < 2) return 0;
+  return Math.round(
+    (Math.max(...stamps) - Math.min(...stamps)) / 60000,
+  );
+};
+
+export interface SessionBrief {
+  id: string;
+  title: string;
+  date: string;
+  dateLabel: string;
+  model: string;
+  project: string;
+  tags: string[];
+  turns: number;
+  tokens: number;
+  minutes: number;
+}
+export interface Snapshot {
+  id: string;
+  sessionId: string;
+  sessionTitle: string;
+  turn: number;
+  speaker: string;
+  role: string;
+  at: string;
+  atLabel: string;
+  text: string;
+  caption: string;
+  flag?: string;
+}
+export interface LedgerRow extends Pattern, Opportunity {
+  signalLabels: { label: string; def: string }[];
+  briefs: SessionBrief[];
+  snapshots: Snapshot[];
+  metrics: { sessions: number; tokens: number; minutes: number };
+}
+
+function brief(sessionId: string): SessionBrief {
+  const { session } = lookup(sessionId);
+  return {
+    id: session.id,
+    title: session.title,
+    date: session.started_at,
+    dateLabel: dateLabel(session.started_at),
+    model: session.model,
+    project: session.project,
+    tags: session.tags,
+    turns: session.turns.length,
+    tokens: tokensIn(session),
+    minutes: minutesIn(session),
+  };
+}
+function snapshot(spec: SnapshotSpec): Snapshot {
+  const { session, persona } = lookup(spec.sid);
+  const turn =
+    spec.n != null
+      ? session.turns.find((item) => item.n === spec.n)
+      : session.turns.find(
+          (item) =>
+            (!spec.role || item.role === spec.role) &&
+            spec.match?.test(item.content),
+        );
+  if (!turn)
+    throw new Error(`Missing snapshot turn: ${spec.sid} / ${spec.n ?? spec.match}`);
+  return {
+    id: `${spec.sid}#${turn.n}`,
+    sessionId: session.id,
+    sessionTitle: session.title,
+    turn: turn.n,
+    speaker: turn.role === "user" ? persona : session.model,
+    role: turn.role,
+    at: turn.at || session.started_at,
+    atLabel: dateLabel(turn.at || session.started_at),
+    text: turn.content,
+    caption: spec.cap,
+    flag: spec.flag,
+  };
+}
+
+export const ledger: LedgerRow[] = patterns.map((pattern) => {
+  const opportunity = opportunities[pattern.id];
+  if (!opportunity) throw new Error(`No ledger copy for pattern: ${pattern.id}`);
+  const briefs = pattern.sessionIds.map(brief);
+  return {
+    ...pattern,
+    ...opportunity,
+    signalLabels: opportunity.signalKeys.map((key) => signalDefs[key]),
+    briefs,
+    snapshots: opportunity.snaps.map(snapshot),
+    metrics: {
+      sessions: briefs.length,
+      tokens: briefs.reduce((sum, item) => sum + item.tokens, 0),
+      minutes: briefs.reduce((sum, item) => sum + item.minutes, 0),
+    },
+  };
+});
+
+const allDates = [...sessionIndex.values()]
+  .map((entry) => entry.session.started_at)
+  .sort();
+export const corpusWindow = {
+  start: allDates[0],
+  end: allDates[allDates.length - 1],
+};
+
+export type MetricKey = "sessions" | "tokens" | "minutes";
+// Meter score is a rank within these four patterns, not an absolute rating.
+export const metricScores: Record<string, Record<MetricKey, number>> = {};
+for (const key of ["sessions", "tokens", "minutes"] as MetricKey[]) {
+  const ranked = [...ledger].sort((a, b) => b.metrics[key] - a.metrics[key]);
+  ranked.forEach((row, index) => {
+    metricScores[row.id] = metricScores[row.id] || ({} as Record<MetricKey, number>);
+    metricScores[row.id][key] = 5 - Math.floor((index * 5) / ranked.length);
+  });
+}
