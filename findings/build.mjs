@@ -7,6 +7,11 @@ import { OPPS, SIGNALS } from "./opportunities.mjs";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const jsonDir = path.join(here, "..", "chat-histories", "json");
 
+// Cost per session: tokens ≈ characters / 4 over every turn; chat time = first turn to last turn.
+const tok = (t) => Math.ceil(t.length / 4);
+const sessTokens = (s) => s.turns.reduce((a, t) => a + tok(t.content), 0);
+const sessMinutes = (s) => (Date.parse(s.turns[s.turns.length - 1].at) - Date.parse(s.turns[0].at)) / 60000;
+const primeTokens = {};
 const sessions = {};
 const primeIds = [];
 const words = (s) => s.toLowerCase().match(/[a-z0-9'<>\-\/.$]+/g) || [];
@@ -28,7 +33,7 @@ for (const f of fs.readdirSync(jsonDir).sort()) {
         for (const w of pw) if (bw.has(w)) i++;
         best = Math.max(best, i / bw.size);
       }
-    if (best > 0.5) primeIds.push(s.id);
+    if (best > 0.5) { primeIds.push(s.id); primeTokens[s.id] = tok(ref); }
   }
 }
 
@@ -47,7 +52,14 @@ const opps = OPPS.map((o) => {
     if (sn.para) text = text.split(/\n\n/).slice(0, sn.para).join("\n\n");
     return { sid: s.id, n: t.n, role: t.role, speaker: t.role === "user" ? s.persona : s.model, at: t.at, title: s.title, text: text.slice(0, 3200), cap: sn.cap, flag: sn.flag || null };
   });
-  return { ...o, sessions: ids.map((id) => brief(sessions[id])), snaps };
+  const prime = o.sessions === "@prime";
+  const metrics = {
+    sessions: ids.length,
+    tokens: ids.reduce((a, id) => a + (prime ? primeTokens[id] : sessTokens(sessions[id])), 0),
+    minutes: prime ? null : Math.round(ids.reduce((a, id) => a + sessMinutes(sessions[id]), 0)),
+    scope: prime ? "paste" : "sessions",
+  };
+  return { ...o, sessions: ids.map((id) => brief(sessions[id])), snaps, metrics };
 });
 
 const data = { signals: SIGNALS, opps, corpus: { sessions: Object.keys(sessions).length, prime: primeIds.length, start: "2026-03-02", end: "2026-09-18" } };

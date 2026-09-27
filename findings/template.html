@@ -146,13 +146,39 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .repeats span:last-child{font:400 13px/24px var(--mono);color:var(--ink-muted);text-align:right}
 @media (max-width:720px){.plan{grid-template-columns:1fr}}
 
+/* metrics: sessions, tokens, chat time */
+.mets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s3)}
+.met .k{font:600 10px/14px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted)}
+.met .v{font:800 20px/26px var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.met .v small{font:500 12px/16px var(--display);color:var(--ink-muted);margin-left:2px}
+.meter{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-top:4px}
+.meter i{height:4px;background:var(--rule)}
+.meter i.on{background:var(--blue)}
+.mets.lg .v{font-size:32px;line-height:36px}
+.mets.lg .meter i{height:6px}
 /* ===== A: ledger ===== */
 .ledger{border-top:2px solid var(--rule-strong)}
-.lrow{display:grid;grid-template-columns:56px minmax(0,1fr) 220px 168px auto;gap:var(--s4);align-items:center;padding-block:var(--s4);border-bottom:1px solid var(--rule)}
-.lrow h3{font:700 24px/30px var(--display);letter-spacing:-.005em;margin:0 0 4px}
-.lrow .line{margin:0 0 var(--s2);max-width:62ch;color:var(--ink-muted)}
-.lrow .who{font:400 13px/20px var(--sans);color:var(--ink-muted);margin-top:4px}
-.lrow .count{font:800 32px/36px var(--display);font-variant-numeric:tabular-nums}
+.lrow{display:grid;grid-template-columns:40px minmax(0,1fr) 300px 168px;column-gap:var(--s4);row-gap:var(--s3);padding-block:20px;border-bottom:1px solid var(--rule);align-items:start}
+.lrow>.index{grid-row:1;line-height:30px}
+.lrow .ltext{grid-column:2;grid-row:1}
+.lrow h3{font:700 24px/30px var(--display);letter-spacing:-.005em;margin:0}
+.lrow .line{margin:2px 0 0;color:var(--ink-muted)}
+.lrow .cadcell{grid-column:3;grid-row:1/3;display:grid;gap:var(--s3);align-content:start;padding-top:4px}
+.lrow .lthumb{grid-column:4;grid-row:1/3}
+.lrow .lsub{grid-column:2;grid-row:2;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:var(--s3)}
+.lrow .lsub-l{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3);min-height:40px}
+.lrow .who{font:400 13px/20px var(--sans);color:var(--ink-muted)}
+.lrow .split{margin-left:auto}
+.split{display:inline-flex;height:40px}
+.split button{display:inline-flex;align-items:center;justify-content:center;background:var(--blue);color:var(--on-blue)}
+.split .split-exp{width:40px;box-shadow:inset -1px 0 0 var(--on-blue)}
+.split .split-exp svg{transition:transform .18s}
+.split .split-exp[aria-expanded="true"] svg{transform:rotate(180deg)}
+.split .split-build{gap:var(--s2);padding-inline:var(--s3);font:600 12px/16px var(--display);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+.split.queued button{background:var(--ink);color:var(--paper)}
+.split.queued .split-exp{box-shadow:inset -1px 0 0 var(--paper)}
+.split button:hover{background:var(--ink);color:var(--paper)}
+.split.queued button:hover{background:var(--blue);color:var(--on-blue)}
 .lthumb{--shot-h:84px}
 .lthumb .shot-body{font-size:8px;line-height:11px}
 .lthumb figcaption{display:none}
@@ -161,8 +187,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .lexp>*,.lexp-grid>*,.cell-exp>*,.dsec,.dpane>*{min-width:0}
 main{min-width:0;max-width:100%}
 .lexp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s6)}
-@media (max-width:1100px){.lrow{grid-template-columns:48px minmax(0,1fr) 160px auto}.lthumb{display:none}}
-@media (max-width:720px){.lrow{grid-template-columns:40px minmax(0,1fr);row-gap:var(--s3)}.lrow .cadcell{grid-column:1/-1}.lrow .actions{grid-column:1/-1}.lrow .actions .btn{flex:1;justify-content:center}.lexp-grid{grid-template-columns:1fr}.lrow h3{font-size:20px;line-height:26px}}
+@media (max-width:1100px){.lrow{grid-template-columns:40px minmax(0,1fr) 280px}.lrow .lthumb{display:none}}
+@media (max-width:720px){.lrow{grid-template-columns:32px minmax(0,1fr)}.lrow .cadcell{grid-column:2;grid-row:2;padding-top:0}.lrow .lsub{grid-column:2;grid-row:3;grid-template-columns:1fr}.lrow .split{margin-left:0;width:100%}.lrow .split-build{flex:1}.lrow h3{font-size:20px;line-height:26px}.lrow>.index{line-height:26px}.lexp-grid{grid-template-columns:1fr}}
 
 /* ===== B: board ===== */
 .board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
@@ -252,7 +278,7 @@ footer{padding-block:var(--s6);color:var(--ink-muted);font:400 13px/20px var(--s
 
   <main id="view"></main>
 
-  <footer>Evidence is quoted from <span class="mono">chat-histories/json</span>. Screenshots are real assistant and user turns, cut to fit; open one to read the whole turn. Repeat counts come from matching output shapes across every assistant turn.</footer>
+  <footer>Tokens count the transcript text in each job's sessions (characters divided by 4); chat time runs from first to last turn. Scores rank the nine jobs on each measure, 5 highest. Evidence is quoted from <span class="mono">chat-histories/json</span>. Screenshots are real assistant and user turns, cut to fit; open one to read the whole turn. Repeat counts come from matching output shapes across every assistant turn.</footer>
 </div>
 
 <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-labelledby="lb-title">
@@ -343,6 +369,7 @@ function plan(o) {
     '<div><h4 class="label">Outputs</h4><ul>' + li(p.outputs) + "</ul></div>" +
     '<div><h4 class="label">Rules it enforces</h4><ul>' + li(p.rules) + "</ul></div>" +
     '<div><h4 class="label">Build plan</h4><ol>' + li(p.steps) + "</ol></div>" +
+    '<div class="full"><h4 class="label">Cost they reported</h4><p style="margin:0">' + esc(o.cost) + "</p></div>" +
     '<div class="full"><h4 class="label">What repeats</h4><div class="repeats">' + o.repeats.map((r) => "<div><span>" + esc(r[0]) + "</span><span>" + esc(r[1]) + "</span></div>").join("") + "</div></div>" +
     "</div>";
 }
@@ -355,6 +382,24 @@ function expBtn(o, cls = "", label = "Review plan") {
   return '<button class="icon-btn ' + cls + '" data-exp="' + o.id + '" aria-expanded="' + e + '" aria-label="' + label + ": " + esc(o.name) + '">' + PLUS + "</button>";
 }
 const who = (o) => o.who.join(", ");
+const METS = [
+  { key: "sessions", label: "Sessions", fmt: (v) => String(v), tip: "Sessions where this job came up" },
+  { key: "tokens", label: "Tokens", fmt: (v) => (v >= 1000 ? (v / 1000).toFixed(1) + "<small>k</small>" : String(v)), tip: "Transcript tokens across those sessions (characters / 4)" },
+  { key: "minutes", label: "Chat time", fmt: (v) => (v >= 60 ? (v / 60).toFixed(1) + "<small>h</small>" : v + "<small>m</small>"), tip: "Elapsed time from first to last turn, summed" },
+];
+const SCORES = {};
+for (const m of METS) {
+  const vals = opps.filter((o) => o.metrics[m.key] != null).sort((a, b) => b.metrics[m.key] - a.metrics[m.key]);
+  vals.forEach((o, r) => { (SCORES[o.id] = SCORES[o.id] || {})[m.key] = 5 - Math.floor((r * 5) / vals.length); });
+}
+function mets(o, lg) {
+  return '<div class="mets' + (lg ? " lg" : "") + '">' + METS.map((m) => {
+    const v = o.metrics[m.key], sc = v == null ? 0 : SCORES[o.id][m.key];
+    const tip = v == null ? "Not measurable: the paste sits inside other jobs' sessions" : m.tip + ", score " + sc + " of 5";
+    return '<div class="met" title="' + esc(tip) + '"><div class="k">' + m.label + '</div><div class="v">' + (v == null ? "—" : m.fmt(v)) + "</div>" +
+      '<div class="meter" role="img" aria-label="Score ' + sc + ' of 5">' + [1, 2, 3, 4, 5].map((i) => '<i class="' + (i <= sc ? "on" : "") + '"></i>').join("") + "</div></div>";
+  }).join("") + "</div>";
+}
 const rank = (o) => pad(opps.indexOf(o) + 1);
 
 /* ---------- A: ledger ---------- */
@@ -363,14 +408,21 @@ function viewA() {
     const e = open.has(o.id);
     return '<article class="lrow">' +
       '<div class="index">' + rank(o) + "</div>" +
-      "<div><h3>" + esc(o.name) + '</h3><p class="line">' + esc(o.line) + "</p>" + chips(o) + '<div class="who">' + esc(o.kind) + " · " + esc(who(o)) + " · " + esc(o.cost) + "</div></div>" +
-      '<div class="cadcell"><div class="label muted" style="margin-bottom:6px"><span class="count" style="font:800 18px/24px var(--display);color:var(--ink)">' + o.sessions.length + "</span> sessions</div>" + cadence(o) + "</div>" +
+      '<div class="ltext"><h3>' + esc(o.name) + '</h3><p class="line">' + esc(o.line) + "</p></div>" +
+      '<div class="cadcell">' + mets(o) + cadence(o) + "</div>" +
       '<div class="lthumb">' + shot(o, 0, { chars: 700 }) + "</div>" +
-      '<div class="actions">' + expBtn(o) + buildBtn(o) + "</div>" +
+      '<div class="lsub"><div class="lsub-l">' + chips(o) + '<span class="who">' + esc(o.kind) + " · " + esc(who(o)) + "</span></div>" + splitBtn(o) + "</div>" +
       "</article>" +
       (e ? '<section class="lexp" aria-label="Plan for ' + esc(o.name) + '"><div><h4 class="label" style="margin:0 0 var(--s3)">Outputs from the chats · ' + o.snaps.length + '</h4><div class="strip">' + o.snaps.map((_, k) => shot(o, k)).join("") + "</div></div>" +
         '<div class="lexp-grid"><div><h4 class="label" style="margin:0 0 var(--s3)">Proposed ' + esc(o.kind.toLowerCase()) + "</h4>" + plan(o) + '</div><div style="display:grid;gap:var(--s4);align-content:start"><h4 class="label" style="margin:0">Sessions</h4>' + sessList(o) + "</div></div></section>" : "");
   }).join("") + "</div>";
+}
+const CHEV = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M3.5 6l4.5 4.5L12.5 6"/></svg>';
+function splitBtn(o) {
+  const q = queued.has(o.id), e = open.has(o.id);
+  return '<div class="split' + (q ? " queued" : "") + '">' +
+    '<button class="split-exp" data-exp="' + o.id + '" aria-expanded="' + e + '" aria-label="' + (e ? "Collapse" : "Expand") + " plan: " + esc(o.name) + '">' + CHEV + "</button>" +
+    '<button class="split-build" data-build="' + o.id + '" aria-pressed="' + q + '">' + (q ? "Queued" : "Build tool" + ARROW) + "</button></div>";
 }
 function sessList(o) {
   return '<div class="repeats">' + o.sessions.slice(0, 12).map((s) => "<div><span>" + esc(s.title) + '</span><span>' + s.id + " · " + fmtDate(s.date) + "</span></div>").join("") +
@@ -386,7 +438,7 @@ function viewB() {
       '<div class="field ' + field + '">' + shot(o, 0, { chars: 900 }) + "</div>" +
       '<div class="cell-body"><div class="cell-top"><span class="index">' + rank(o) + '</span><span class="label muted">' + esc(o.kind) + " · " + esc(who(o)) + "</span></div>" +
       "<h3>" + esc(o.name) + '</h3><p class="line">' + esc(o.line) + "</p>" + chips(o) +
-      '<div class="cost"><b>' + o.sessions.length + " sessions</b>" + esc(o.cost) + "</div></div>" +
+      '<div class="cost">' + mets(o) + "</div></div>" +
       '<div class="cell-foot">' + expBtn(o) + buildBtn(o) + "</div></div>";
     const exp = e ? '<div class="cell-exp"><div class="dsec"><div class="dsec-h"><span class="label">When it came up</span><span class="mono muted">' + o.sessions.length + ' sessions</span></div>' + cadence(o, true) + "</div>" +
       '<div class="dsec"><div class="dsec-h"><span class="label">Outputs from the chats</span><span class="mono muted">' + o.snaps.length + '</span></div><div class="shots2" style="--shot-h:240px">' + o.snaps.map((_, k) => shot(o, k)).join("") + "</div></div>" +
@@ -409,7 +461,7 @@ function viewC() {
   const o = cur;
   const pane = '<section class="dpane" id="dpane" aria-live="polite">' +
     '<div class="dpane-head"><div><div class="label muted" style="margin-bottom:var(--s3)">' + rank(o) + " · " + esc(o.kind) + " · " + esc(who(o)) + "</div><h3>" + esc(o.name) + '</h3><p class="lead">' + esc(o.line) + "</p></div>" + buildBtn(o) + "</div>" +
-    '<div class="dmeta"><div><div class="label muted">Sessions</div><div style="font:800 32px/36px var(--display)">' + o.sessions.length + '</div></div><div><div class="label muted">Cost today</div><div>' + esc(o.cost) + '</div></div><div><div class="label muted">Signals</div>' + chips(o) + "</div></div>" +
+    '<div class="dmeta" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)"><div>' + mets(o, true) + '</div><div><div class="label muted" style="margin-bottom:6px">Signals</div>' + chips(o) + "</div></div>" +
     '<div class="dsec"><div class="dsec-h"><span class="label">When it came up</span><span class="mono muted">Mar – Sep 2026 · line marks 9 Sep review</span></div>' + cadence(o, true) + "</div>" +
     '<div class="dsec"><div class="dsec-h"><span class="label">Outputs from the chats</span><span class="mono muted">click to read the full turn</span></div><div class="dshots">' + o.snaps.map((_, k) => shot(o, k, { chars: 2000 })).join("") + "</div></div>" +
     '<div class="dsec"><div class="dsec-h"><span class="label">Proposed ' + esc(o.kind.toLowerCase()) + '</span><span class="mono muted">effort ' + o.plan.effort + "</span></div>" + plan(o) + "</div>" +
