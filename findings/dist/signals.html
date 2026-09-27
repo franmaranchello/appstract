@@ -158,7 +158,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .mets.lg .meter i{height:6px}
 /* ===== A: ledger ===== */
 .ledger{border-top:2px solid var(--rule-strong)}
-.lrow{display:grid;grid-template-columns:40px minmax(0,1fr) 168px;column-gap:var(--s4);row-gap:var(--s3);padding-block:20px;border-bottom:1px solid var(--rule);align-items:start}
+.lrow{display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:var(--s4);row-gap:var(--s3);padding-block:20px;border-bottom:1px solid var(--rule);align-items:start}
 .lrow>.index{grid-row:1;line-height:30px}
 .lrow .ltext{grid-column:2;grid-row:1;display:grid;gap:var(--s2)}
 .lrow h3{font:700 24px/30px var(--display);letter-spacing:-.005em;margin:0}
@@ -169,7 +169,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .lrow .eyebrow span{cursor:help}
 .lrow .who{font:400 13px/20px var(--sans);color:var(--ink-muted)}
 .lrow .lana{grid-column:2;grid-row:2;display:grid;grid-template-columns:300px minmax(0,1fr) auto;gap:var(--s5);align-items:end;border-top:1px solid var(--rule);padding-top:var(--s3)}
-.lrow .lthumb{grid-column:3;grid-row:1/3}
 .split{display:inline-flex;height:40px}
 .split button{display:inline-flex;align-items:center;justify-content:center;background:var(--blue);color:var(--on-blue)}
 .split .split-exp{width:40px;box-shadow:inset -1px 0 0 var(--on-blue)}
@@ -180,15 +179,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .split.queued .split-exp{box-shadow:inset -1px 0 0 var(--paper)}
 .split button:hover{background:var(--ink);color:var(--paper)}
 .split.queued button:hover{background:var(--blue);color:var(--on-blue)}
-.lthumb{--shot-h:84px}
-.lthumb .shot-body{font-size:8px;line-height:11px}
-.lthumb figcaption{display:none}
 .lexp{padding-block:var(--s5) var(--s6);border-bottom:1px solid var(--rule);display:grid;gap:var(--s5)}
 .strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,340px);gap:var(--s4);overflow-x:auto;padding-bottom:var(--s2)}
 .lexp>*,.lexp-grid>*,.cell-exp>*,.dsec,.dpane>*{min-width:0}
 main{min-width:0;max-width:100%}
 .lexp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s6)}
-@media (max-width:1100px){.lrow{grid-template-columns:40px minmax(0,1fr)}.lrow .lthumb{display:none}.lrow .lana{grid-template-columns:240px minmax(0,1fr) auto;gap:var(--s4)}}
+@media (max-width:1100px){.lrow .lana{grid-template-columns:240px minmax(0,1fr) auto;gap:var(--s4)}}
 @media (max-width:720px){.lrow{grid-template-columns:32px minmax(0,1fr)}.lrow .lana{grid-template-columns:1fr;gap:var(--s3)}.lrow .split{width:100%}.lrow .split-build{flex:1}.lrow h3{font-size:20px;line-height:26px}.lrow>.index{line-height:26px}.lrow .lhead{grid-template-columns:1fr}.lrow .eyebrow{justify-content:flex-start;order:-1;max-width:none;padding-top:0}.lexp-grid{grid-template-columns:1fr}}
 
 /* ===== B: board ===== */
@@ -411,7 +407,6 @@ function viewA() {
       '<div class="index">' + rank(o) + "</div>" +
       '<div class="ltext"><div class="lhead"><h3>' + esc(o.name) + '</h3><div class="eyebrow" aria-label="Signals">' + o.signals.map((k) => '<span title="' + esc(DATA.signals[k].def) + '">' + esc(DATA.signals[k].label) + "</span>").join("") + '</div></div><p class="line">' + esc(o.line) + ' <span class="who">' + esc(o.kind) + " · " + esc(who(o)) + "</span></p></div>" +
       '<div class="lana">' + mets(o) + cadence(o) + splitBtn(o) + "</div>" +
-      '<div class="lthumb">' + shot(o, 0, { chars: 700 }) + "</div>" +
       "</article>" +
       (e ? '<section class="lexp" aria-label="Plan for ' + esc(o.name) + '"><div><h4 class="label" style="margin:0 0 var(--s3)">Outputs from the chats · ' + o.snaps.length + '</h4><div class="strip">' + o.snaps.map((_, k) => shot(o, k)).join("") + "</div></div>" +
         '<div class="lexp-grid"><div><h4 class="label" style="margin:0 0 var(--s3)">Proposed ' + esc(o.kind.toLowerCase()) + "</h4>" + plan(o) + '</div><div style="display:grid;gap:var(--s4);align-content:start"><h4 class="label" style="margin:0">Sessions</h4>' + sessList(o) + "</div></div></section>" : "");
@@ -471,7 +466,7 @@ function viewC() {
 
 /* ---------- chrome ---------- */
 const DIRS = {
-  a: { title: "A · Ledger", note: "An index to scan. One row per opportunity, ranked by how many sessions it showed up in, with a cadence strip and a thumbnail of the output. Expand a row for every screenshot and the plan.", view: viewA },
+  a: { title: "A · Ledger", note: "An index to scan. One row per opportunity, ranked by how many sessions it showed up in, with a cadence strip and the cost of the repeat. Expand a row for the output screenshots and the plan.", view: viewA },
   b: { title: "B · Board", note: "A wall of cells led by the output itself. Each screenshot sits on a field so the artifact is the first thing you see. Expand a cell and it takes the full row.", view: viewB },
   c: { title: "C · Desk", note: "A review queue. Pick an item on the left and read its evidence at full size on the right, then build it or move to the next.", view: viewC },
 };
