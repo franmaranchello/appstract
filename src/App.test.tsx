@@ -49,7 +49,7 @@ describe("parent discovery integration", () => {
     await within(clashPlan).findByText("Clash detection");
     await within(vendorPlan).findByText("Vendor approval");
 
-    fireEvent.click(within(vendorPlan).getByRole("button", { name: "Open app" }));
+    fireEvent.click(within(vendorPlan).getByRole("button", { name: "Build app" }));
     let state = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
     expect(state.activeKind).toBe("vendor");
     expect(state.events.at(-1)).toMatchObject({
@@ -60,7 +60,7 @@ describe("parent discovery integration", () => {
     expect(new URL(vi.mocked(location.assign).mock.calls[0][0].toString()).searchParams.get("appId")).toBe(appCatalog.vendor.appId);
 
     // Changing the active app must not change the other expanded row's binding.
-    fireEvent.click(within(screen.getByRole("region", { name: `Plan for ${clashRow.title}` })).getByRole("button", { name: "Open app" }));
+    fireEvent.click(within(screen.getByRole("region", { name: `Plan for ${clashRow.title}` })).getByRole("button", { name: "Build app" }));
     state = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
     expect(state.activeKind).toBe("clash");
     expect(state.events.at(-1)).toMatchObject({
@@ -69,6 +69,8 @@ describe("parent discovery integration", () => {
       person: "Priya Raghunathan",
     });
     expect(state.events).toHaveLength(2);
+    expect(within(screen.getByRole("region", { name: `Plan for ${vendorRow.title}` })).getByRole("button", { name: "Open app" })).toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: `Plan for ${clashRow.title}` })).getByRole("button", { name: "Open app" })).toBeInTheDocument();
     expect(state.apps.vendor.id).toBe(appCatalog.vendor.appId);
     expect(state.apps.clash.id).toBe(appCatalog.clash.appId);
   });
@@ -88,7 +90,7 @@ describe("parent discovery integration", () => {
     expect(screen.getByText(`“${vendor.evidence[0].quote}”`)).toBeInTheDocument();
     await screen.findByText("Vendor approval");
     expect(screen.queryByText("Chat time")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Open app" }));
+    fireEvent.click(screen.getByRole("button", { name: "Build app" }));
     await waitFor(() => expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).events.at(-1)).toMatchObject({ appId: appCatalog.vendor.appId, person: "Dana Whitfield" }));
   });
 });
