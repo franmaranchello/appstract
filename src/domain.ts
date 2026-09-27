@@ -4,6 +4,7 @@ export type AppVersion = {
   presentation: "baseline" | "non-color";
   request: string;
   createdAt: string;
+  requestedBy?: string;
 };
 
 export type AppRecord = {
@@ -15,11 +16,14 @@ export type AppRecord = {
   url: string;
 };
 
-export function createDemoApp(request: string): AppRecord {
+export function createDemoApp(
+  request: string,
+  name = "Clash detection",
+): AppRecord {
   const createdAt = new Date().toISOString();
-  const id = `clash-review-${crypto.randomUUID()}`;
+  const id = "appstract.clash-check";
   const version: AppVersion = {
-    id: `${id}-v1`,
+    id: "clash-v1",
     number: 1,
     presentation: "baseline",
     request,
@@ -27,7 +31,7 @@ export function createDemoApp(request: string): AppRecord {
   };
   return {
     id,
-    name: "Clash review app",
+    name,
     createdAt,
     versions: [version],
     currentVersionId: version.id,
@@ -35,16 +39,21 @@ export function createDemoApp(request: string): AppRecord {
   };
 }
 
-export function extendApp(app: AppRecord, request: string): AppRecord {
+export function extendApp(
+  app: AppRecord,
+  request: string,
+  requestedBy?: string,
+): AppRecord {
   if (app.versions.some((version) => version.presentation === "non-color"))
     return app;
   const number = Math.max(...app.versions.map((version) => version.number)) + 1;
   const version: AppVersion = {
-    id: `${app.id}-v${number}`,
+    id: `clash-v${number}`,
     number,
     presentation: "non-color",
     request,
     createdAt: new Date().toISOString(),
+    ...(requestedBy ? { requestedBy } : {}),
   };
   return {
     ...app,
@@ -63,7 +72,7 @@ type Route = {
 export function routeRequest(text: string, app: AppRecord | null): Route {
   const request = text.toLowerCase();
   if (
-    /\b(navisworks|xml|ifc|bcf)\b|\b(group|grouping|triage|assign|ownership)\b/.test(
+    /\b(navisworks|xml|ifc|bcf|group|grouping|triage|assign|ownership)\b/.test(
       request,
     )
   ) {
@@ -71,48 +80,64 @@ export function routeRequest(text: string, app: AppRecord | null): Route {
       action: "CLARIFY",
       title: "Different input or task",
       reason:
-        "Demo rules support sample geometry clash checks. File parsing and issue grouping need a different app contract.",
+        "This app checks the sample building. File parsing and issue grouping need a different app.",
     };
   }
-  const compatible =
-    (/\bclash(?:es)?\b/.test(request) &&
-      /\b(check|checks|detect|detection|report|review|run)\b/.test(request)) ||
-    /\bsample\s+(?:building|model|geometry)\b/.test(request);
-  if (!compatible)
+  if (
+    /\b(finance|financial|invoice|invoices|vendor|procurement|submittal|submittals|payroll|budget|cash|accounting)\b/.test(
+      request,
+    )
+  ) {
     return {
       action: "CLARIFY",
-      title: "Describe the sample clash check",
+      title: "A different workflow",
       reason:
-        "This rule-based demo recognizes sample-model clash checks; it cannot confirm a match for this request.",
+        "The clash app does not support that workflow. Choose the matching task before continuing.",
     };
-  if (!app)
-    return {
-      action: "CREATE",
-      title: "Set up the clash review app",
-      reason:
-        "Demo rules recognize the sample clash workflow. No app is saved in this local catalog yet.",
-    };
+  }
   const accessible =
     /colou?r[-\s]?blind|non[-\s]?colou?r|without\s+colou?r|(?:cannot|can.t)\s+distinguish|\baccessible\b|\bshapes\b|\bpatterns\b/.test(
       request,
     );
+  const explicitClash =
+    (/\bclash(?:es)?\b/.test(request) &&
+      /\b(check|checks|detect|detection|report|review|run)\b/.test(request)) ||
+    /\bsample\s+(?:building|model|geometry)\b/.test(request);
+  const contextual =
+    !!app &&
+    accessible &&
+    /\b(same|this|existing)\s+(?:tool|app|report)\b|\bit\b/.test(request);
+  if (!explicitClash && !contextual)
+    return {
+      action: "CLARIFY",
+      title: "Which task would you like to run?",
+      reason:
+        "Ask for a clash check, or describe how you want to change the existing clash app.",
+    };
+  if (!app)
+    return {
+      action: "CLARIFY",
+      title: "Clash app is not available",
+      reason:
+        "The clash app has not been found yet. Start the app and try again.",
+    };
   const nonColorVersion = app.versions.find(
     (version) => version.presentation === "non-color",
   );
   if (accessible && !nonColorVersion)
     return {
       action: "EXTEND",
-      title: "Add non-color presentation",
+      title: "Make the same app easier to read",
       versionId: app.currentVersionId,
       reason:
-        "Demo rules match the existing sample clash app. Labels and shapes require a new presentation version.",
+        "Keep the clash check and add numbered markers, shapes and labels in a new version.",
     };
   return {
     action: "REUSE",
-    title: "Reuse the saved app",
+    title: "Use the existing clash app",
     versionId: accessible ? nonColorVersion!.id : app.currentVersionId,
     reason:
-      "Demo rules match a saved version with the requested sample workflow and presentation. No new version is needed.",
+      "The saved app already supports this request. Open it without creating another version.",
   };
 }
 
@@ -133,6 +158,7 @@ function allowedUrl(value: string): URL | null {
 export function buildLaunchUrl(
   app: AppRecord,
   version: AppVersion,
+  returnTo?: string,
 ): string | null {
   const url = allowedUrl(app.url);
   if (
@@ -150,6 +176,9 @@ export function buildLaunchUrl(
     mode: "sample",
     presentation: version.presentation,
     fixtureId: "sample-building",
+    ...(returnTo && allowedUrl(returnTo)
+      ? { returnTo: allowedUrl(returnTo)!.toString() }
+      : {}),
   }).toString();
   return url.toString();
 }
@@ -188,6 +217,7 @@ export function validateApp(value: unknown): AppRecord | null {
       (version.number as number) < 1 ||
       !date(version.createdAt) ||
       typeof version.request !== "string" ||
+      (version.requestedBy !== undefined && !nonempty(version.requestedBy)) ||
       (version.presentation !== "baseline" &&
         version.presentation !== "non-color") ||
       versions.some(
@@ -201,6 +231,9 @@ export function validateApp(value: unknown): AppRecord | null {
       presentation: version.presentation,
       request: version.request,
       createdAt: version.createdAt,
+      ...(typeof version.requestedBy === "string"
+        ? { requestedBy: version.requestedBy }
+        : {}),
     });
   }
   if (!versions.some((version) => version.id === value.currentVersionId))

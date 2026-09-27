@@ -1,8 +1,8 @@
 # Appstract
 
-Interactive Modul UI mockup for turning recurring organizational work into reusable apps.
+Interactive Modul mockup for finding recurring organizational work and reusing a teammate's app.
 
-## Run and iterate
+## Run
 
 Use Node 22.12+ (built here with Node 26.3.1).
 
@@ -11,61 +11,57 @@ npm ci
 npm run dev
 ```
 
-Open the local URL Vite prints, normally `http://127.0.0.1:5173`.
+Appstract runs at `http://127.0.0.1:5173`. Start the separate clash app on port **5186**; Appstract discovers its manifest automatically. There is no Connect or registration step. For production previews, Appstract uses **4173** and expects the clash app on **4186**. Ports are fixed; an occupied parent port produces an error.
 
 ```bash
-npm test       # routing, versions, persistence validation, safe app URLs
-npm run build  # TypeScript check and production build
+npm test
+npm run build
 npm run preview
 ```
 
+For a different app address, copy `.env.example` to `.env.local` and set `VITE_CLASH_APP_URL`, then restart Vite. The legacy `VITE_DEMO_APP_URL` remains a fallback. These are public app addresses, never secrets. Cross-origin manifest requests must be allowed by the clash app's server.
+
 ![Appstract history view](docs/mockup-history.png)
 
-## What works
+[Pattern selection and automatic app discovery](docs/mockup-patterns.png)
 
-- History selection and original JSON inspection for the four supplied HRA personas.
-- Four prepared opportunity cards, with recurrence counts and exact source excerpts.
-- App brief, local app registration, persistent catalog and v1/v2 configuration history.
-- New request demo: create, reuse, extend or clarify; incompatible XML triage stays separate from sample geometry.
-- External app URL setup, versioned launch fragment and a reset flow.
-- Responsive Modul styling, bundled fonts, keyboard controls and native dialogs.
+## Try the two-person flow
 
-**This is a UI mockup.** Discovery is manually prepared from the actual synthetic corpus; routing uses explicit demo rules. No live model, app code generation, QM or GBrain connection runs here. Only the clash app is registered in this demo; the other opportunities can be reviewed and shortlisted for the current session.
+1. Select histories → **Find patterns** → select **Clash coordination**. Appstract checks the running app and shows **Existing app found** beside the source evidence.
+2. Click **Open app** to run v1. Navigation stays in the same tab and passes the pinned version to the separate app.
+3. Use the app's **Back to Appstract** link. Choose another teammate and ask: “I'm color-blind. Can you make the same tool easier to read?”
+4. **Find app** → **Extend app & open v2**. The same app opens with labels, shapes and non-color markers.
+5. Return to inspect both versions and requester history. Repeat the request to reuse v2; reopen v1 from version history. Refresh retains browser-local state.
 
-## Demo walkthrough
+If the app is offline or its manifest is invalid, discovery shows an error and Retry. It does not create a replacement app. Rediscovery updates the address while preserving valid saved versions and their requester. Reset clears this browser's demo state; the running app can be discovered again.
 
-1. Select histories → **Find patterns** → **Clash issue triage** → **Review app brief**.
-2. Read the team-selected sample-clash scope → **Add demo app**.
-3. Open **New request**, choose the color-blind-friendly example, then **Find the right app** → **Create v2 configuration**.
-4. The catalog retains v1 and shows v2 on the same app. Repeat the request to see REUSE. Try the XML example to see CLARIFY.
-5. Refresh to confirm persistence. **Reset demo** clears only this browser's demo state.
+## What this proves
 
-The separate generated app repository owns sample fixtures, all computation and result UI. Appstract does not calculate clashes or claim a successful run just because a tab opened.
+Four prepared opportunities use exact excerpts from the supplied synthetic HRA corpus. Analysis is manually curated and routing uses deterministic rules. Version 2 is an allowlisted **configuration extension**, not newly generated code. Persona selection simulates teammates; it is not authentication.
 
-## Connect your teammate's app
+The separate app owns sample geometry, computation and result UI. Appstract owns discovery, request routing and browser-local version/request history. Opening it does not prove a successful computation. No live model, QM or GBrain integration runs here.
 
-Click **Connect** in the catalog and enter its HTTPS or local HTTP preview URL. Alternatively, copy `.env.example` to `.env.local` and set `VITE_DEMO_APP_URL` before creating the first app. The UI setting can override it.
-
-The launch URL fragment contains `appId`, `appVersionId`, `sourceRequestId`, `mode=sample`, `presentation=baseline|non-color`, and `fixtureId=sample-building`. The app reads `new URLSearchParams(location.hash.slice(1))`. Agree on that fixture ID or change it in `src/domain.ts`. Request text and credentials are not included. The sourceRequestId is a local demo marker, not an authenticated identity.
-
-## Where to change things
+## Main files
 
 | File | Responsibility |
 |---|---|
-| `src/App.tsx` | Views, interactions, dialogs and local state |
-| `src/styles.css` | Modul tokens, layouts and responsive styling |
-| `src/data.ts` | Prepared patterns and source-backed evidence |
-| `src/domain.ts` | Demo routing, app versions, validation and launch URL |
-| `chat-histories/json/` | Original supplied synthetic conversations |
+| `src/App.tsx` | Views, requests and local persistence |
+| `src/registry.ts` | Manifest discovery, errors and saved-version reconciliation |
+| `src/domain.ts` | Routing, versions, validation and launch URLs |
+| `src/data.ts` | Prepared patterns and original source excerpts |
+| `src/styles.css` | Modul styling and responsive layout |
+| `chat-histories/json/` | Supplied synthetic conversations |
 
-The corpus is bundled for an immediately runnable offline mockup, so the build reports a large-chunk warning. Lazy-loading source histories is a future optimization, not a missing runtime dependency. Fonts are bundled locally.
+Fonts and histories are bundled locally. The bundled corpus produces a large-chunk build warning.
 
-## Planning references
+## References and verification
 
-- [90-minute build plan](docs/hackathon-plan.md)
-- [Separate app handoff](docs/app-integration-contract.md)
+- [App integration contract](docs/app-integration-contract.md)
+- [Build plan](docs/hackathon-plan.md)
 - [Modul design system](DESIGN.md)
 - [Rehearsal checklist](docs/hackathon-test-plan.md)
-- [After the hackathon](TODOS.md)
+- [Deferred work](TODOS.md)
 
-Build and seven domain tests pass. Browser-checked: source→app→extension flow, persistence, exact reuse, XML mismatch, and 320px reflow. External app computation and actual provider integrations were not exercised.
+The 15 domain/discovery tests and production build pass. Browser-verified across both running apps: automatic discovery → v1 → second teammate request → v2, repeat reuse, saved versions after return, reopening v1, incompatible XML requests, storage failure, and 320px layouts. The generated app has 67 passing tests. Headless browser verification used the plan fallback because WebGL was unavailable.
+
+![Same app with v1 and v2](docs/mockup-apps.png)

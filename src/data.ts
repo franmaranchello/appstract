@@ -186,7 +186,7 @@ export const patterns: Pattern[] = [
   prepare({
     id: "clash",
     rank: 1,
-    title: "Clash issue triage",
+    title: "Clash coordination",
     category: "BIM coordination",
     description:
       "Priya repeatedly turns raw Navisworks exports into grouped issues with owners, priorities and coordination actions.",
@@ -199,7 +199,6 @@ export const patterns: Pattern[] = [
     signals: [
       "Repeated export-to-report workflow",
       "The grouping script was lost and requested again",
-      "Historical scope is issue triage, not IFC geometry detection",
     ],
     selections: [
       ["cd-003", "collapse raw rows"],

@@ -2386,6 +2386,122 @@ button.version-item:hover {
     padding: 24px 20px;
   }
 }
+.topbar {
+  min-height: 64px;
+}
+.page-intro.compact {
+  min-height: unset;
+  padding: 32px 0 28px;
+}
+.page-intro.compact .page-title {
+  font-size: 44px;
+  line-height: 48px;
+  letter-spacing: -0.02em;
+}
+.page-intro.compact .eyebrow {
+  margin-bottom: 12px;
+}
+.page-intro.compact .lead {
+  margin-top: 12px;
+  max-width: 680px;
+}
+.registry-match {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 24px 0;
+  padding: 20px;
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--blue);
+}
+.match-summary {
+  min-width: 0;
+}
+.match-summary strong {
+  display: block;
+  font-size: 15px;
+  line-height: 24px;
+}
+.match-summary p,
+.match-summary > span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--muted);
+}
+.match-status {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--blue);
+  font:
+    600 10px/16px "Jost",
+    sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.registry-match > .button {
+  flex-shrink: 0;
+}
+.request-history {
+  margin-top: 24px;
+  border-top: 1px solid var(--rule);
+}
+.request-event {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  line-height: 22px;
+}
+.request-event strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.request-event p {
+  margin-top: 4px;
+  color: var(--muted);
+}
+.request-event .mono {
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.version-author {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.inline-error {
+  margin: 12px 0;
+  padding: 12px 0 12px 12px;
+  border-left: 2px solid #c42820;
+  color: #c42820;
+  font-size: 13px;
+  line-height: 22px;
+}
+@media (max-width: 560px) {
+  .page-intro.compact {
+    padding: 28px 0 24px;
+  }
+  .page-intro.compact .page-title {
+    font-size: 36px;
+    line-height: 40px;
+  }
+  .registry-match {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+  .registry-match > .button {
+    width: 100%;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
