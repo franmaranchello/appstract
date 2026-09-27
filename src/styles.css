@@ -1115,25 +1115,11 @@ svg {
   letter-spacing: -0.055em;
 }
 .brand-mark {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  margin-right: 12px;
-  height: 22px;
-}
-.brand-mark > * {
   display: block;
-  width: 5px;
-  height: 22px;
-  background: var(--blue);
-}
-.brand-mark > :nth-child(2) {
-  height: 16px;
-  background: var(--red);
-}
-.brand-mark > :nth-child(3) {
-  height: 10px;
-  background: var(--yellow);
+  height: 24px;
+  width: auto;
+  margin-right: 12px;
+  flex: none;
 }
 .nav-number {
   font:

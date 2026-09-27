@@ -4,8 +4,15 @@ import {
   patterns,
   corpusStats,
   getHistoryJson,
+  ledger,
+  corpusWindow,
+  metricScores,
   type Pattern,
+  type LedgerRow,
+  type Snapshot,
+  type MetricKey,
 } from "./data";
+import { Markdown } from "./markdown";
 import {
   extendApp,
   routeRequest,
@@ -20,6 +27,7 @@ type View = "history" | "patterns" | "apps" | "request";
 type ModalKind =
   | { kind: "json"; sourceId: string }
   | { kind: "brief"; pattern: Pattern }
+  | { kind: "snap"; snap: Snapshot }
   | { kind: "reset" }
   | null;
 type RequestEvent = {
@@ -76,6 +84,239 @@ function Arrow() {
     <span aria-hidden="true" className="arrow">
       →
     </span>
+  );
+}
+function BrandMark() {
+  return (
+    <svg
+      className="brand-mark"
+      viewBox="0 0 788 511"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path fill="var(--blue)" d="M0 0 491 0 607 329 607 509 498 509 358.7 107 0 107Z" />
+      <path fill="var(--yellow)" d="M0 145h332l36.7 106H0z" />
+      <path fill="var(--red)" d="M0 289h381.9l36.4 105H0z" />
+      <path fill="var(--blue)" d="M0 425h429l29.1 84H0z" />
+      <path fill="var(--ink)" d="M638 319h150v164H638z" />
+    </svg>
+  );
+}
+function Chevron() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="square"
+      aria-hidden="true"
+    >
+      <path d="M3.5 6l4.5 4.5L12.5 6" />
+    </svg>
+  );
+}
+const METERS: {
+  key: MetricKey;
+  label: string;
+  tip: string;
+  format: (value: number) => ReactNode;
+}[] = [
+  {
+    key: "sessions",
+    label: "Sessions",
+    tip: "Sessions where this job came up",
+    format: (value) => value,
+  },
+  {
+    key: "tokens",
+    label: "Tokens",
+    tip: "Transcript tokens across those sessions (characters / 4)",
+    format: (value) =>
+      value >= 1000 ? (
+        <>
+          {(value / 1000).toFixed(1)}
+          <small>k</small>
+        </>
+      ) : (
+        value
+      ),
+  },
+  {
+    key: "minutes",
+    label: "Chat time",
+    tip: "Elapsed time from first to last turn, summed",
+    format: (value) =>
+      value >= 60 ? (
+        <>
+          {(value / 60).toFixed(1)}
+          <small>h</small>
+        </>
+      ) : (
+        <>
+          {value}
+          <small>m</small>
+        </>
+      ),
+  },
+];
+function Metrics({ row }: { row: LedgerRow }) {
+  return (
+    <div className="mets">
+      {METERS.map((meter) => {
+        const score = metricScores[row.id][meter.key];
+        return (
+          <div
+            className="met"
+            key={meter.key}
+            title={`${meter.tip}, score ${score} of 5`}
+          >
+            <div className="k">{meter.label}</div>
+            <div className="v">{meter.format(row.metrics[meter.key])}</div>
+            <div
+              className="meter"
+              role="img"
+              aria-label={`Score ${score} of 5`}
+            >
+              {[1, 2, 3, 4, 5].map((step) => (
+                <i className={step <= score ? "on" : ""} key={step} />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const WINDOW_START = Date.parse(corpusWindow.start);
+const WINDOW_END = Date.parse(corpusWindow.end);
+const TICKS = (() => {
+  const ticks: string[] = [];
+  const cursor = new Date(WINDOW_START);
+  cursor.setUTCDate(1);
+  while (cursor.getTime() <= WINDOW_END) {
+    ticks.push(MONTHS[cursor.getUTCMonth()][0]);
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+  }
+  return ticks;
+})();
+function Cadence({ row }: { row: LedgerRow }) {
+  const at = (date: string) =>
+    ((Date.parse(date) - WINDOW_START) / (WINDOW_END - WINDOW_START)) * 100;
+  return (
+    <div
+      className="cad"
+      role="img"
+      aria-label={`${row.briefs.length} sessions across the corpus window`}
+    >
+      <div className="cad-track" />
+      {row.briefs.map((brief) => (
+        <span
+          className="cad-dot"
+          key={brief.id}
+          style={{ left: `${at(brief.date).toFixed(2)}%` }}
+          title={`${brief.id} · ${brief.dateLabel} · ${brief.title}`}
+        />
+      ))}
+      <div className="cad-ticks" aria-hidden="true">
+        {TICKS.map((tick, index) => (
+          <span key={index}>{tick}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+function Shot({ snap, onOpen }: { snap: Snapshot; onOpen: () => void }) {
+  return (
+    <figure className={`shot ${snap.role === "user" ? "user" : ""}`}>
+      <div className="shot-frame">
+        <div className="shot-bar">
+          <b>{snap.speaker}</b>
+          <span>
+            {snap.sessionId} · {snap.atLabel}
+          </span>
+        </div>
+        <div className="shot-body md" aria-hidden="true">
+          <Markdown text={snap.text.slice(0, 1400)} />
+        </div>
+        {snap.flag && <span className="shot-flag">{snap.flag}</span>}
+        <button
+          className="shot-open"
+          onClick={onOpen}
+          aria-label={`Read the full turn: ${snap.caption}`}
+        />
+      </div>
+      <figcaption>{snap.caption}</figcaption>
+    </figure>
+  );
+}
+function PlanView({ row }: { row: LedgerRow }) {
+  return (
+    <div className="plan">
+      <div>
+        <h5 className="label">Inputs</h5>
+        <ul>
+          {row.plan.inputs.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h5 className="label">Outputs</h5>
+        <ul>
+          {row.plan.outputs.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h5 className="label">Rules it enforces</h5>
+        <ul>
+          {row.plan.rules.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h5 className="label">Build plan</h5>
+        <ol>
+          {row.plan.steps.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
+      </div>
+      <div className="full">
+        <h5 className="label">Cost they reported</h5>
+        <p style={{ margin: 0 }}>{row.cost}</p>
+      </div>
+      <div className="full">
+        <h5 className="label">What repeats</h5>
+        <div className="repeats">
+          {row.repeats.map(([shape, count]) => (
+            <div key={shape}>
+              <span>{shape}</span>
+              <span>{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 function Modal({
@@ -370,11 +611,7 @@ export default function App() {
           onClick={() => navigate("history")}
           aria-label="Appstract home"
         >
-          <span className="brand-mark" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
+          <BrandMark />
           <span className="wordmark">appstract</span>
         </button>
         <nav aria-label="Main navigation">
@@ -1012,7 +1249,9 @@ export default function App() {
               ? "Source history"
               : modal.kind === "reset"
                 ? "Reset demo?"
-                : modal.pattern.title
+                : modal.kind === "snap"
+                  ? `${modal.snap.sessionId} · turn ${modal.snap.turn}`
+                  : modal.pattern.title
           }
           onClose={() => setModal(null)}
         >
@@ -1020,6 +1259,17 @@ export default function App() {
             <pre className="json-view" tabIndex={0}>
               {getHistoryJson(modal.sourceId)}
             </pre>
+          )}
+          {modal.kind === "snap" && (
+            <>
+              <p className="caption muted">
+                {modal.snap.speaker} · {modal.snap.sessionTitle} ·{" "}
+                {modal.snap.atLabel}
+              </p>
+              <div className="md snap-full" tabIndex={0}>
+                <Markdown text={modal.snap.text} />
+              </div>
+            </>
           )}
           {modal.kind === "brief" && (
             <>
