@@ -28,6 +28,28 @@ export const appCatalog = {
 
 export type AppKind = keyof typeof appCatalog;
 
+// QM patterns have generated IDs; older saved analysis labels vendor topics as
+// "other". Match the source and review topic as well as the prepared-example ID.
+export function patternAppKind(pattern?: {
+  id: string;
+  workflow?: string;
+  sourceId: string;
+  title: string;
+}): AppKind | undefined {
+  if (!pattern) return undefined;
+  if (pattern.workflow === "clash-coordination" || pattern.id === "clash")
+    return "clash";
+  if (
+    pattern.id === "vendor" ||
+    (pattern.sourceId === "vendor-review" &&
+      /\b(review|reviews|approval|approvals|scorecard|scorecards|intake|due diligence)\b/i.test(
+        pattern.title,
+      ))
+  )
+    return "vendor";
+  return undefined;
+}
+
 export function appKindForId(id: string): AppKind | undefined {
   return (Object.keys(appCatalog) as AppKind[]).find(
     (kind) => appCatalog[kind].appId === id,

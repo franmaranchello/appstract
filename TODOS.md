@@ -8,7 +8,7 @@ Current scope is docs/hackathon-plan.md: 90 minutes, one complete discovery → 
 - Durable GBrain outbox, source ACL propagation, native QM capture and semantic enrichment.
 - Generic app bridge/SDK, run callbacks and cross-repo integration framework.
 - Production authentication/multi-tenancy, private data connectors and incremental sync.
-- Additional generated apps across finance, vendor review and specifications.
+- Additional generated apps across finance and specifications; full vendor scorecard generation beyond the integrated approval demo.
 - Real IFC/production geometry features, owned by the separate app repository.
 - Measured ROI/adoption and learning/training systems.
 

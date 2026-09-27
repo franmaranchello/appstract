@@ -1,8 +1,15 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import { discoveryPlugin } from "./server/discovery.ts";
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    discoveryPlugin(process.cwd(), {
+      ...loadEnv(mode, process.cwd(), ""),
+      ...process.env,
+    }),
+  ],
   build: {
     rollupOptions: {
       input: {
@@ -11,6 +18,6 @@ export default defineConfig({
       },
     },
   },
-  server: { port: 5173, strictPort: true },
-  preview: { port: 4173, strictPort: true },
-});
+  server: { port: 5174, strictPort: true },
+  preview: { port: 4174, strictPort: true },
+}));

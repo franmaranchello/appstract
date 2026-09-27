@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   sources,
-  patterns,
+  patterns as preparedPatterns,
   corpusStats,
   getHistoryJson,
   type Pattern,
@@ -14,8 +14,23 @@ import {
   type AppVersion,
 } from "./domain";
 import { discoverApp, mergeDiscoveredApp } from "./registry";
-import { appCatalog, requestAppKind, type AppKind } from "./catalog";
+import {
+  appCatalog,
+  patternAppKind,
+  requestAppKind,
+  type AppKind,
+} from "./catalog";
 import { loadSaved, STORAGE_KEY, type RequestEvent } from "./storage";
+import { discoveryRequest, startDiscovery, getDiscovery } from "./discovery";
+import type { DiscoveryJob } from "./discovery-types";
+const DISCOVERY_KEY = "appstract-qm-discovery-job";
+function savedDiscoveryId() {
+  try {
+    return sessionStorage.getItem(DISCOVERY_KEY) || "";
+  } catch {
+    return "";
+  }
+}
 
 type View = "history" | "patterns" | "apps" | "request";
 type ModalKind =
@@ -42,7 +57,7 @@ function appBaseUrl(kind: AppKind) {
       import.meta.env.VITE_CLASH_APP_URL || import.meta.env.VITE_DEMO_APP_URL
     );
   if (["localhost", "127.0.0.1", "[::1]"].includes(location.hostname))
-    return `${location.protocol}//${location.hostname}:${location.port === "4173" ? "4186" : "5186"}/`;
+    return `${location.protocol}//${location.hostname}:${["4173", "4174"].includes(location.port) ? "4186" : "5186"}/`;
   return new URL("/apps/clash-detection/", location.origin).href;
 }
 function Arrow() {
@@ -97,13 +112,25 @@ export default function App() {
     sources.map((source) => source.id),
   );
   const [selectedPatternId, setSelectedPatternId] = useState("clash");
-  const [analyzed, setAnalyzed] = useState(saved.analyzed);
+  const [analyzed, setAnalyzed] = useState(false);
+  const [patterns, setPatterns] = useState<Pattern[]>([]);
+  const [analysisMode, setAnalysisMode] = useState<"qm" | "prepared">("qm");
+  const [discoveryId, setDiscoveryId] = useState(savedDiscoveryId);
+  const [discoveryJob, setDiscoveryJob] = useState<DiscoveryJob | null>(null);
+  const [discoveryError, setDiscoveryError] = useState("");
+  const [startingDiscovery, setStartingDiscovery] = useState(false);
+  const [qmConnection, setQmConnection] = useState<{
+    configured: boolean;
+    error?: string;
+  } | null>(null);
+  const discoveryBusy = startingDiscovery || discoveryJob?.status === "running";
   const [apps, setApps] = useState(saved.apps);
   const [activeKind, setActiveKind] = useState<AppKind>(saved.activeKind);
   const [events, setEvents] = useState<RequestEvent[]>(saved.events);
   const [selectedVersionId, setSelectedVersionId] = useState(
     saved.apps[saved.activeKind]?.currentVersionId || "",
   );
+  const [sourceJson, setSourceJson] = useState("Loading QM history…");
   const [modal, setModal] = useState<ModalKind>(null);
   const [request, setRequest] = useState("");
   const [persona, setPersona] = useState("Claudia Barros");
@@ -138,9 +165,8 @@ export default function App() {
     visiblePatterns.find((pattern) => pattern.id === selectedPatternId) ||
     visiblePatterns[0];
   const kind: AppKind =
-    view === "patterns" &&
-    (activePattern?.id === "clash" || activePattern?.id === "vendor")
-      ? activePattern.id
+    view === "patterns"
+      ? (patternAppKind(activePattern) ?? activeKind)
       : activeKind;
   const definition = appCatalog[kind];
   const app = apps[kind];
@@ -151,6 +177,121 @@ export default function App() {
     app?.versions.find((version) => version.id === selectedVersionId) ||
     app?.versions.find((version) => version.id === app.currentVersionId);
 
+  useEffect(() => {
+    discoveryRequest<{ configured: boolean; error?: string }>("status")
+      .then(setQmConnection)
+      .catch(() =>
+        setQmConnection({
+          configured: false,
+          error: "The QM discovery server is unavailable.",
+        }),
+      );
+  }, []);
+  useEffect(() => {
+    if (!discoveryId) return;
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout>;
+    async function poll() {
+      try {
+        const job = await getDiscovery(discoveryId);
+        if (disposed) return;
+        setDiscoveryJob(job);
+        setSelectedSources(job.sourceIds);
+        if (job.status === "complete") {
+          setPatterns(job.patterns);
+          setAnalyzed(true);
+          setSelectedPatternId(job.patterns[0]?.id || "");
+        } else if (job.status === "failed") {
+          setDiscoveryError(job.error || "QM discovery failed.");
+        } else {
+          timer = setTimeout(poll, 1500);
+        }
+      } catch (error) {
+        if (disposed) return;
+        setDiscoveryError(
+          error instanceof Error ? error.message : "Could not load QM results.",
+        );
+        // Keep the run ID. Reconnecting resumes the same run without paying for another analysis.
+        setDiscoveryJob((current) =>
+          current?.status === "running"
+            ? { ...current, status: "failed" }
+            : current,
+        );
+      }
+    }
+    void poll();
+    return () => {
+      disposed = true;
+      clearTimeout(timer);
+    };
+  }, [discoveryId, retry]);
+  useEffect(() => {
+    if (modal?.kind !== "json" || analysisMode !== "qm") return;
+    let active = true;
+    setSourceJson("Reading synthetic history from QM…");
+    discoveryRequest(`history/${encodeURIComponent(modal.sourceId)}`)
+      .then((value) => {
+        if (active) setSourceJson(JSON.stringify(value, null, 2));
+      })
+      .catch((error) => {
+        if (active)
+          setSourceJson(
+            error instanceof Error ? error.message : "QM history unavailable.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [modal, analysisMode]);
+  async function findPatterns() {
+    if (discoveryBusy) return;
+    setStartingDiscovery(true);
+    setDiscoveryError("");
+    setAnalyzed(false);
+    setPatterns([]);
+    setDiscoveryId("");
+    setDiscoveryJob(null);
+    setAnalysisMode("qm");
+    try {
+      sessionStorage.removeItem(DISCOVERY_KEY);
+    } catch {
+      /* optional resume */
+    }
+    navigate("patterns");
+    try {
+      const job = await startDiscovery(selectedSources);
+      setDiscoveryJob(job);
+      setDiscoveryId(job.id);
+      try {
+        sessionStorage.setItem(DISCOVERY_KEY, job.id);
+      } catch {
+        /* discovery still works */
+      }
+    } catch (error) {
+      setDiscoveryError(
+        error instanceof Error
+          ? error.message
+          : "Could not start QM discovery.",
+      );
+    } finally {
+      setStartingDiscovery(false);
+    }
+  }
+  function showPreparedPatterns() {
+    setDiscoveryId("");
+    setDiscoveryJob(null);
+    setDiscoveryError("");
+    try {
+      sessionStorage.removeItem(DISCOVERY_KEY);
+    } catch {
+      /* optional resume */
+    }
+    setAnalysisMode("prepared");
+    setPatterns(preparedPatterns);
+    setAnalyzed(true);
+    setSelectedPatternId("clash");
+    navigate("patterns");
+  }
   function persist(
     nextApp: AppRecord | null,
     nextEvents = events,
@@ -252,7 +393,11 @@ export default function App() {
   function openVersion(version = selectedVersion) {
     if (!app || !version || registryState !== "ready") return;
     setSelectedVersionId(version.id);
-    const person = view === "patterns" ? definition.person : persona;
+    const person =
+      view === "patterns"
+        ? sources.find((source) => source.id === activePattern?.sourceId)
+            ?.name || "Teammate"
+        : persona;
     const nextEvents = [
       ...events,
       {
@@ -476,6 +621,7 @@ export default function App() {
                   <h3>Team conversations</h3>
                   <button
                     className="button ghost"
+                    disabled={discoveryBusy}
                     onClick={() =>
                       setSelectedSources(
                         selectedSources.length === sources.length
@@ -495,6 +641,7 @@ export default function App() {
                       <label className="source-main">
                         <input
                           type="checkbox"
+                          disabled={discoveryBusy}
                           checked={selectedSources.includes(source.id)}
                           onChange={() =>
                             setSelectedSources((current) =>
@@ -545,14 +692,15 @@ export default function App() {
                   </div>
                   <button
                     className="button primary"
-                    disabled={!selectedSources.length}
-                    onClick={() => {
-                      setAnalyzed(true);
-                      setSelectedPatternId(visiblePatterns[0]?.id || "clash");
-                      navigate("patterns");
-                    }}
+                    disabled={
+                      !selectedSources.length ||
+                      discoveryBusy ||
+                      !qmConnection?.configured
+                    }
+                    onClick={findPatterns}
                   >
-                    Find patterns <Arrow />
+                    {discoveryBusy ? "Reading histories…" : "Find patterns"}{" "}
+                    <Arrow />
                   </button>
                 </div>
               </section>
@@ -577,9 +725,28 @@ export default function App() {
                   submittals.
                 </p>
                 <p className="caption muted">
-                  Prepared analysis of the supplied synthetic histories. Every
-                  excerpt links to its source session.
+                  QM is a connected history source. Appstract reads the
+                  synthetic conversations and shows saved analysis, checked
+                  against the live history. Each pattern cites at least two
+                  sessions.
                 </p>
+                <p className="caption" role="status">
+                  {qmConnection === null
+                    ? "Checking QM connection…"
+                    : qmConnection.configured
+                      ? "QM connected · synthetic demo histories"
+                      : "QM not connected"}
+                </p>
+                {!qmConnection?.configured && qmConnection?.error && (
+                  <p className="caption muted">{qmConnection.error}</p>
+                )}
+                <button
+                  className="button secondary"
+                  disabled={!selectedSources.length || discoveryBusy}
+                  onClick={showPreparedPatterns}
+                >
+                  View prepared examples
+                </button>
               </aside>
             </div>
           </>
@@ -590,11 +757,60 @@ export default function App() {
               <h2>
                 {analyzed ? visiblePatterns.length : 0} recurring workflows
               </h2>
-              <span className="small-label">Prepared analysis</span>
+              <span className="small-label">
+                {analysisMode === "qm" ? "Source: QM" : "Prepared examples"}
+              </span>
             </div>
+            {analysisMode === "qm" &&
+              (discoveryBusy || discoveryError || discoveryJob) && (
+                <div
+                  className="discovery-status"
+                  role={discoveryError ? "alert" : "status"}
+                >
+                  <p>
+                    {discoveryError ||
+                      (discoveryBusy
+                        ? `Appstract is preparing analysis from QM. ${discoveryJob?.completedSources || 0} of ${discoveryJob?.totalSources || selectedSources.length} histories ready.`
+                        : `Analyzed ${discoveryJob?.completedSources} ${discoveryJob?.completedSources === 1 ? "history" : "histories"} from QM. Saved Appstract analysis, verified against live conversations.`)}
+                  </p>
+                  {discoveryBusy && (
+                    <p className="caption muted">
+                      This can take several minutes. You can leave this view;
+                      the local demo is finishing its saved analysis.
+                    </p>
+                  )}
+                  {discoveryJob?.readAt && (
+                    <p className="caption muted">
+                      Read from QM{" "}
+                      {new Date(discoveryJob.readAt).toLocaleTimeString()}.
+                      {discoveryJob.analyzedAt &&
+                        ` Analysis saved ${new Date(discoveryJob.analyzedAt).toLocaleString()}.`}
+                    </p>
+                  )}
+                  {discoveryError && discoveryId && (
+                    <button
+                      className="button secondary"
+                      onClick={() => {
+                        setDiscoveryError("");
+                        setRetry((value) => value + 1);
+                      }}
+                    >
+                      Reload run status
+                    </button>
+                  )}
+                </div>
+              )}
             {!analyzed || !activePattern ? (
               <div className="empty-state">
-                <h2>Select a history first</h2>
+                <h2>
+                  {discoveryBusy
+                    ? "Finding recurring work…"
+                    : discoveryError
+                      ? "Discovery could not finish"
+                      : analyzed
+                        ? "No recurring workflows found"
+                        : "Select a history first"}
+                </h2>
                 <button
                   className="button primary"
                   onClick={() => navigate("history")}
@@ -615,12 +831,14 @@ export default function App() {
                       key={pattern.id}
                       onClick={() => {
                         setSelectedPatternId(pattern.id);
-                        if (pattern.id === "clash" || pattern.id === "vendor")
-                          setActiveKind(pattern.id);
+                        const matchedKind = patternAppKind(pattern);
+                        if (matchedKind) setActiveKind(matchedKind);
                       }}
                       aria-pressed={activePattern.id === pattern.id}
                     >
-                      <span className="pattern-number">0{pattern.rank}</span>
+                      <span className="pattern-number">
+                        {String(pattern.rank).padStart(2, "0")}
+                      </span>
                       <span className="pattern-content">
                         <span className="small-label">{pattern.category}</span>
                         <strong>{pattern.title}</strong>
@@ -641,8 +859,7 @@ export default function App() {
                     <h3>{activePattern.title}</h3>
                   </div>
                   <div className="panel-body">
-                    {(activePattern.id === "clash" ||
-                      activePattern.id === "vendor") && <RegistryMatch />}
+                    {patternAppKind(activePattern) && <RegistryMatch />}
                     <div className="metrics-row">
                       <div>
                         <strong>{activePattern.sessionIds.length}</strong>
@@ -679,13 +896,13 @@ export default function App() {
                           <p>{activePattern.output}</p>
                         </div>
                       </div>
-                      {activePattern.id === "clash" && (
+                      {patternAppKind(activePattern) === "clash" && (
                         <p className="caption muted">
                           The existing app checks sample geometry. It does not
                           import or group Navisworks exports.
                         </p>
                       )}
-                      {activePattern.id === "vendor" && (
+                      {patternAppKind(activePattern) === "vendor" && (
                         <p className="caption muted">
                           The app demonstrates intake, document and security
                           checks, and human approval with sample vendors. It
@@ -694,17 +911,16 @@ export default function App() {
                         </p>
                       )}
                     </details>
-                    {activePattern.id !== "clash" &&
-                      activePattern.id !== "vendor" && (
-                        <button
-                          className="button secondary full-width"
-                          onClick={() =>
-                            setModal({ kind: "brief", pattern: activePattern })
-                          }
-                        >
-                          View proposed app <Arrow />
-                        </button>
-                      )}
+                    {!patternAppKind(activePattern) && (
+                      <button
+                        className="button secondary full-width"
+                        onClick={() =>
+                          setModal({ kind: "brief", pattern: activePattern })
+                        }
+                      >
+                        View proposed app <Arrow />
+                      </button>
+                    )}
                   </div>
                 </aside>
               </div>
@@ -1063,7 +1279,10 @@ export default function App() {
           </>
         )}
         <footer className="footer">
-          <span>HRA sample history · Prepared patterns</span>
+          <span>
+            HRA sample history ·{" "}
+            {analysisMode === "qm" ? "Source: QM" : "Prepared examples"}
+          </span>
           <div>
             <span>Appstract</span>
             <button onClick={() => setModal({ kind: "reset" })}>
@@ -1097,7 +1316,9 @@ export default function App() {
         >
           {modal.kind === "json" && (
             <pre className="json-view" tabIndex={0}>
-              {getHistoryJson(modal.sourceId)}
+              {analysisMode === "qm"
+                ? sourceJson
+                : getHistoryJson(modal.sourceId)}
             </pre>
           )}
           {modal.kind === "brief" && (
@@ -1140,12 +1361,22 @@ export default function App() {
                 </button>
                 <button
                   className="button primary"
+                  disabled={discoveryBusy}
                   onClick={() => {
                     setApps({ clash: null, vendor: null });
                     appsRef.current = { clash: null, vendor: null };
                     setActiveKind("clash");
                     setEvents([]);
                     setAnalyzed(false);
+                    setPatterns([]);
+                    setDiscoveryId("");
+                    setDiscoveryJob(null);
+                    setDiscoveryError("");
+                    try {
+                      sessionStorage.removeItem(DISCOVERY_KEY);
+                    } catch {
+                      /* optional resume */
+                    }
                     setRequest("");
                     setRoute(null);
                     setSelectedVersionId("");

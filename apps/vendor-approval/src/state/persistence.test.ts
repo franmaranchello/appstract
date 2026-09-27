@@ -18,7 +18,7 @@ it("round-trips vendors", () => {
   const storage = memoryStorage();
   const vendors = createSeedVendors();
   saveVendors(storage, vendors);
-  expect(loadVendors(storage)).toEqual({ vendors, recovered: false });
+  expect(loadVendors(storage)).toEqual({ vendors, recovered: false, storageUnavailable: false });
 });
 
 it("recovers from invalid data", () => {

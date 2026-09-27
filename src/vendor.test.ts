@@ -188,3 +188,62 @@ test("storage rejects mismatched app slots and tolerates inaccessible storage", 
     { clash: null, vendor: null },
   );
 });
+
+test("QM vendor-review patterns and prepared examples select vendor independently of generated IDs", async () => {
+  const { patternAppKind } = await import("./catalog.ts");
+  assert.equal(
+    patternAppKind({
+      id: "qm-vendor-review-1",
+      workflow: "other",
+      sourceId: "vendor-review",
+      title: "Six-category vendor due diligence review",
+    }),
+    "vendor",
+  );
+  assert.equal(
+    patternAppKind({
+      id: "vendor",
+      sourceId: "vendor-review",
+      title: "Vendor review scorecard",
+    }),
+    "vendor",
+  );
+  assert.equal(
+    patternAppKind({
+      id: "qm-clash-detection-1",
+      workflow: "clash-coordination",
+      sourceId: "clash-detection",
+      title: "Model coordination",
+    }),
+    "clash",
+  );
+  assert.equal(
+    patternAppKind({
+      id: "qm-project-finance-1",
+      workflow: "other",
+      sourceId: "project-finance",
+      title: "Monthly financial review",
+    }),
+    undefined,
+  );
+  assert.equal(
+    patternAppKind({
+      id: "qm-vendor-review-2",
+      workflow: "other",
+      sourceId: "vendor-review",
+      title: "Data export automation",
+    }),
+    undefined,
+  );
+});
+
+
+test("current QM intake and due diligence patterns map to vendor but negotiation and communications do not", async () => {
+  const { patternAppKind } = await import("./catalog.ts");
+  for (const title of ["Vendor register and review tracking", "Software vendor intake and risk scoring", "Consultant and supplier due diligence"]) {
+    assert.equal(patternAppKind({ id: "qm-vendor-review-generated", workflow: "other", sourceId: "vendor-review", title }), "vendor");
+  }
+  for (const title of ["Vendor contract risk and negotiation notes", "Unapproved tool stop-use communications", "Third-party risk leadership brief"]) {
+    assert.equal(patternAppKind({ id: "qm-vendor-review-generated", workflow: "other", sourceId: "vendor-review", title }), undefined);
+  }
+});

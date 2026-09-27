@@ -22,10 +22,11 @@ was merged in bauhaus-clash-detection PR #3.
 Verified deployments: parent `dpl_FsUUmq9n7BbjdpTX6TLKnWCHaJ2m` from main
 `2a221a8`, child `dpl_BXqz5Y4qKQPvX582vFiZkgbKSzKV` from `ae53797` (merged
 as `9a44b13`). Later main-branch changes require their own deployment and
-verification. QM is still separate and unprovisioned; this flow uses the
-prepared pattern demo and deterministic sample detector.
+verification. These earlier checks used the prepared pattern demo and
+deterministic sample detector. QM is now provisioned and connected as described below.
 
-The current main branch is a static Vite/React demo. `vercel.json` installs with
+The frontend is a static Vite/React demo with explicit Vercel API functions
+under `api/discovery/` for the QM bridge. `vercel.json` installs with
 `npm ci`, builds with `npm run build`, and serves `dist`. Use Vercel's Node 24.x
 runtime. Navigation uses URL fragments, so no catch-all SPA rewrite is needed.
 The vendor integration adds a bundled HTML entry at `/apps/vendor-approval/`
@@ -81,27 +82,37 @@ Verify the live manifest, discovery, v1 launch, return, second-person v2
 extension, return, refresh persistence, and reopening v1 before declaring the
 hosted demo complete.
 
-## QM work in progress
+## Live QM input bridge
 
-Boston owns the QM discovery integration. Its current implementation uses Vite
-development/preview middleware, a process-local job map, background work after
-a 202 response, and a loopback-only access check. `vite build` does not deploy
-that middleware. Copying it into a Vercel Function would not make its job state
-or execution lifetime durable, and removing the loopback check would expose the
-configured QM actor without replacing its access control.
+QM runs locally on the demo Mac. It holds 80 synthetic conversations with
+1,171 messages imported from `chat-histories`. Appstract-local analysis produced
+23 patterns; the deployed app verifies saved input fingerprints and exact quotes
+against live QM API reads before returning results. QM is the history input,
+not the analysis engine. Public visitors cannot start model work.
 
-Keep this static demo and local QM verification distinct until the QM owner
-provides a hosted adapter. A persistent authenticated service beside QM can
-own the jobs, or a Vercel implementation can use durable job storage and
-execution. Either needs real user authorization, job ownership, bounded
-execution, and a verified HTTPS QM endpoint. A same-origin API can then be
-routed to that adapter; no backend route is configured in this static setup.
+The public Vercel functions proxy only status, source-history and saved-result
+selection requests through a token-authenticated HTTPS tunnel to the local
+bridge. `QM_BRIDGE_URL` and `QM_BRIDGE_TOKEN` are server-only production
+environment variables. Never use a `VITE_` prefix. The bridge has no generic
+QM proxy, admin access or chat-write endpoints. Only the seeded synthetic corpus
+is public; private histories would require per-user authorization and isolation.
 
-`QM_CORE_URL`, `QM_SIGNING_SECRET`, `QM_ACTOR_ID`, `QM_MODEL`, and `QM_HARNESS`
-belong only on the server executing the QM adapter. Never use a `VITE_` prefix
-for those values or embed them in browser code. Setting them on a static Vercel
-project alone does not enable QM. Preserve explicit disconnected/error states
-when integrating Boston's UI; prepared examples must remain labeled examples.
+Use the explicit `status.js`, `jobs.js`, `jobs/[id].js`, and `history/[id].js`
+function routes. This Vite deployment does not support Next.js-style nested
+catch-all routing. Each request performs bounded reads; no background job runs
+after a serverless response. Selections survive process restarts through source
+IDs and input fingerprints, and changed inputs invalidate saved results.
+
+The Mac, Docker/QM, local bridge and tunnel must remain running. Restarting the
+quick tunnel changes its URL; update `QM_BRIDGE_URL` and deploy again. QM is not
+hosted on Vercel. See [QM setup and demo limits](qm-discovery.md) for local commands.
+
+Verified production deployment: `https://appstract-5j2bela5k-radical-labs.vercel.app`,
+aliased to the canonical parent URL. Live status, all-source result selection,
+restored selection and source-history reads returned 200. Browser verification
+showed 23 patterns, live source JSON, and the existing child app launch/return.
+The 23 domain, registry, input and bridge tests passed, as did the production build.
+The bridge and local model caches stay outside Git and Vercel uploads.
 
 ## Agent setup
 

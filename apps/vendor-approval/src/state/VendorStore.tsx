@@ -22,11 +22,12 @@ import {
   updateDocument as transitionDocument,
   updateSecurityCheck,
 } from "../domain/workflow";
-import { loadVendors, saveVendors, STORAGE_KEY } from "./persistence";
+import { browserStorage, loadVendors, saveVendors } from "./persistence";
 
 interface VendorStoreValue {
   vendors: Vendor[];
   recoveryNotice: boolean;
+  storageUnavailable: boolean;
   addVendor(draft: VendorDraft): Vendor;
   updateDocument(vendorId: string, documentId: string, state: DocumentState): void;
   updateSecurity(vendorId: string, checkId: string, result: SecurityResult, note: string): void;
@@ -44,16 +45,22 @@ function now() {
 
 export function VendorStoreProvider({
   children,
-  storage = window.localStorage,
+  storage: providedStorage,
 }: {
   children: ReactNode;
   storage?: Storage;
 }) {
+  const storage = useMemo(() => providedStorage ?? browserStorage(), [providedStorage]);
   const initial = useMemo(() => loadVendors(storage), [storage]);
   const [vendors, setVendors] = useState(initial.vendors);
   const [recoveryNotice, setRecoveryNotice] = useState(initial.recovered);
+  const [storageUnavailable, setStorageUnavailable] = useState(initial.storageUnavailable);
 
-  useEffect(() => saveVendors(storage, vendors), [storage, vendors]);
+  useEffect(() => {
+    // A failed read must not overwrite an existing portfolio we could not load.
+    if (initial.storageUnavailable) return;
+    setStorageUnavailable(!saveVendors(storage, vendors));
+  }, [initial.storageUnavailable, storage, vendors]);
 
   const updateVendor = useCallback((vendorId: string, updater: (vendor: Vendor) => Vendor) => {
     setVendors((current) => {
@@ -65,6 +72,7 @@ export function VendorStoreProvider({
   const value = useMemo<VendorStoreValue>(() => ({
     vendors,
     recoveryNotice,
+    storageUnavailable,
     addVendor(draft) {
       const vendor = createVendor(draft, now());
       setVendors((current) => [vendor, ...current]);
@@ -86,11 +94,10 @@ export function VendorStoreProvider({
       updateVendor(vendorId, (vendor) => rejectVendor(vendor, reason, now()));
     },
     resetDemo() {
-      storage.removeItem(STORAGE_KEY);
       setVendors(createSeedVendors());
       setRecoveryNotice(false);
     },
-  }), [recoveryNotice, storage, updateVendor, vendors]);
+  }), [recoveryNotice, storageUnavailable, updateVendor, vendors]);
 
   return <VendorStoreContext.Provider value={value}>{children}</VendorStoreContext.Provider>;
 }

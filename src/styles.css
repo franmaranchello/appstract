@@ -2514,3 +2514,13 @@ button.version-item:hover {
 
 .app-picker { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
 .app-picker .button { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.discovery-status {
+  border: 1px solid var(--ink, #242424);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  overflow-wrap: anywhere;
+}
+.discovery-status p { margin: 0 0 .75rem; }
+.discovery-status details { font-size: .8rem; }
+.discovery-status li { margin-top: .5rem; }
+.history-aside > .button { margin-top: .75rem; }
