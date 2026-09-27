@@ -2511,3 +2511,6 @@ button.version-item:hover {
     scroll-behavior: auto !important;
   }
 }
+
+.app-picker { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.app-picker .button { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }

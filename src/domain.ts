@@ -1,3 +1,5 @@
+import { appCatalog, appKindForId, type AppKind } from "./catalog.ts";
+
 export type AppVersion = {
   id: string;
   number: number;
@@ -20,10 +22,15 @@ export function createDemoApp(
   request: string,
   name = "Clash detection",
 ): AppRecord {
+  return { ...createCatalogApp("clash", request), name };
+}
+
+export function createCatalogApp(kind: AppKind, request: string): AppRecord {
+  const definition = appCatalog[kind];
   const createdAt = new Date().toISOString();
-  const id = "appstract.clash-check";
+  const id = definition.appId;
   const version: AppVersion = {
-    id: "clash-v1",
+    id: definition.baselineVersionId,
     number: 1,
     presentation: "baseline",
     request,
@@ -31,7 +38,7 @@ export function createDemoApp(
   };
   return {
     id,
-    name,
+    name: definition.name,
     createdAt,
     versions: [version],
     currentVersionId: version.id,
@@ -44,6 +51,7 @@ export function extendApp(
   request: string,
   requestedBy?: string,
 ): AppRecord {
+  if (app.id !== appCatalog.clash.appId) return app;
   if (app.versions.some((version) => version.presentation === "non-color"))
     return app;
   const number = Math.max(...app.versions.map((version) => version.number)) + 1;
@@ -71,6 +79,39 @@ type Route = {
 
 export function routeRequest(text: string, app: AppRecord | null): Route {
   const request = text.toLowerCase();
+  const vendorRequest = /\bvendors?\b/.test(request);
+  if (vendorRequest || app?.id === appCatalog.vendor.appId) {
+    if (
+      !vendorRequest ||
+      /\b(clash|clashes|finance|invoice|invoices|payroll|submittals?|xml|ifc|bcf|scorecard|six.category|integrat\w*|import\w*|upload\w*|automat\w*|email|send|scrap\w*|live|color|colour|accessible|customiz\w*|extend)\b/.test(
+        request,
+      ) ||
+      !/\b(review|approve|approval|approvals|reject|intake|submit|documents?|security|check|checks|track|status|open|show|list|portfolio)\b/.test(
+        request,
+      )
+    )
+      return {
+        action: "CLARIFY",
+        title: "Which vendor task would you like to run?",
+        reason:
+          "The vendor demo supports intake, document and security review, and human approval with sample data. It does not import questionnaires, generate six-category scorecards, or contact vendors.",
+      };
+    if (app?.id !== appCatalog.vendor.appId)
+      return {
+        action: "CLARIFY",
+        title: "Vendor app is not available",
+        reason:
+          "The vendor approval app has not been found yet. Retry the app check.",
+      };
+    return {
+      action: "REUSE",
+      title: "Use the existing vendor approval app",
+      reason:
+        "Review the vendor portfolio, missing documents and security checks in the saved app. Approval remains a human decision.",
+      versionId: app.currentVersionId,
+    };
+  }
+
   if (
     /\b(navisworks|xml|ifc|bcf|group|grouping|triage|assign|ownership)\b/.test(
       request,
@@ -169,17 +210,32 @@ export function buildLaunchUrl(
     )
   )
     return null;
-  url.hash = new URLSearchParams({
+  const kind = appKindForId(app.id);
+  if (!kind) return null;
+  const definition = appCatalog[kind];
+  if (
+    kind === "vendor" &&
+    (version.id !== "vendor-v1" || version.presentation !== "baseline")
+  )
+    return null;
+  const launch = new URLSearchParams({
     appId: app.id,
     appVersionId: version.id,
     sourceRequestId: `request-${version.id}`,
     mode: "sample",
     presentation: version.presentation,
-    fixtureId: "sample-building",
+    fixtureId: definition.fixtureId,
     ...(returnTo && allowedUrl(returnTo)
       ? { returnTo: allowedUrl(returnTo)!.toString() }
       : {}),
-  }).toString();
+  });
+  if (kind === "vendor") {
+    // The child uses hash routing; launch metadata stays in the query string.
+    for (const [key, value] of launch) url.searchParams.set(key, value);
+    url.hash = "/vendors";
+  } else {
+    url.hash = launch.toString();
+  }
   return url.toString();
 }
 

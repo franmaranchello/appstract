@@ -25,7 +25,20 @@ For a different app address, copy `.env.example` to `.env.local` and set `VITE_C
 
 [Pattern selection and automatic app discovery](docs/mockup-patterns.png)
 
-## Try the two-person flow
+## Try vendor approval
+
+Vendor approval is bundled at `/apps/vendor-approval/`; it needs no separate server or environment variable.
+
+1. Select Dana's history → **Find patterns** → **Vendor review scorecard**.
+2. **Open app** launches Vendor approval v1 beside the original source evidence.
+3. **Submit vendor** → **Research and prepare submission** → **Confirm and start review**.
+4. Complete required documents and security checks, then approve or reject the sample vendor.
+5. **Back to Appstract** returns to the request view. Ask “Review vendor documents and security checks for approval” to reuse v1.
+6. In **Apps**, switch between Clash detection and Vendor approval. Each has separate versions and request history.
+
+The vendor demo uses simulated research and browser-local sample data. Its Reset demo only resets vendor records. See [source attribution and integration notes](apps/vendor-approval/README.md).
+
+## Try the clash two-person flow
 
 1. Select histories → **Find patterns** → select **Clash coordination**. Appstract checks the running app and shows **Existing app found** beside the source evidence.
 2. Click **Open app** to run v1. Navigation stays in the same tab and passes the pinned version to the separate app.
@@ -39,13 +52,16 @@ If the app is offline or its manifest is invalid, discovery shows an error and R
 
 Four prepared opportunities use exact excerpts from the supplied synthetic HRA corpus. Analysis is manually curated and routing uses deterministic rules. Version 2 is an allowlisted **configuration extension**, not newly generated code. Persona selection simulates teammates; it is not authentication.
 
-The separate app owns sample geometry, computation and result UI. Appstract owns discovery, request routing and browser-local version/request history. Opening it does not prove a successful computation. No live model, QM or GBrain integration runs here.
+The separate clash app owns sample geometry, computation and result UI. The bundled vendor app owns sample intake, review and approval state. Appstract owns discovery, request routing and browser-local version/request history. Opening it does not prove a successful computation. No live model, QM or GBrain integration runs here.
 
 ## Main files
 
 | File | Responsibility |
 |---|---|
 | `src/App.tsx` | Views, requests and local persistence |
+| `src/catalog.ts` | App identities and pattern-to-app descriptions |
+| `src/storage.ts` | Multi-app persistence and migration of existing clash history |
+| `apps/vendor-approval/` | Bundled vendor demo and original behavior tests |
 | `src/registry.ts` | Manifest discovery, errors and saved-version reconciliation |
 | `src/domain.ts` | Routing, versions, validation and launch URLs |
 | `src/data.ts` | Prepared patterns and original source excerpts |
@@ -63,6 +79,8 @@ Fonts and histories are bundled locally. The bundled corpus produces a large-chu
 - [Rehearsal checklist](docs/hackathon-test-plan.md)
 - [Deferred work](TODOS.md)
 
-The 15 domain/discovery tests and production build pass. Browser-verified across both running apps: automatic discovery → v1 → second teammate request → v2, repeat reuse, saved versions after return, reopening v1, incompatible XML requests, storage failure, and 320px layouts. The generated app has 67 passing tests. Headless browser verification used the plan fallback because WebGL was unavailable.
+The integration has 22 parent domain/discovery/storage tests and 13 vendor tests. `npm run build` emits both apps. Vendor browser verification covers pattern launch, intake, gated approval, refresh, return and request reuse.
+
+Prior clash verification covered: automatic discovery → v1 → second teammate request → v2, repeat reuse, saved versions after return, reopening v1, incompatible XML requests, storage failure, and 320px layouts. The generated app has 67 passing tests. Headless browser verification used the plan fallback because WebGL was unavailable.
 
 ![Same app with v1 and v2](docs/mockup-apps.png)

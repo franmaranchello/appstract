@@ -1,8 +1,46 @@
-# Appstract ↔ clash app: implemented mockup contract
+# Appstract app integration contract
 
 Appstract automatically discovers the separately running clash app. It owns browser-local app/version/request history and routing. The separate repository owns the canonical sample, computation and result UI. There is no Connect or registration UI, backend registry, generated-code pipeline or result receipt protocol.
 
-## Discovery
+## Bundled vendor app
+
+Vendor approval is imported from `alexselig/bauhaus-vendor-approval` at
+`8fbeca26a2632f9c7ca415fc5dc64a40e9a2c88e`. It is a second Vite HTML entry under
+`apps/vendor-approval/`, built and served with Appstract. It uses the same manifest
+discovery and catalog history flow as clash detection, with its own identity:
+
+```json
+{
+  "schemaVersion": 1,
+  "appId": "appstract.vendor-approval",
+  "name": "Vendor approval",
+  "fixtureId": "sample-vendors",
+  "baselineVersionId": "vendor-v1",
+  "presentations": ["baseline"]
+}
+```
+
+`discoverApp(kind, baseUrl, signal?)` validates each manifest against its expected
+catalog entry. Discovery failures are independent: an offline clash app does not
+prevent vendor discovery or launch. Saved versions and request events are scoped
+to their app. Existing single-clash storage migrates without losing v1/v2 or requests.
+
+The vendor app uses query parameters for the pinned launch contract, and
+`#/vendors` for HashRouter navigation. Its Back to Appstract link accepts only
+the same origin, root path and known parent fragments. Metadata persists across
+vendor routes and refresh. No transcripts are passed.
+
+Vendor review, intake, document, security and approval requests reuse `vendor-v1`.
+Unsupported scorecard/import/live automation requests clarify. Clash's non-color
+extension does not apply to vendor approval. Vendor records have their own local
+storage and reset, independent of Appstract's catalog history.
+
+The source conversations remain the prepared evidence for the vendor pattern.
+The imported app covers part of that pattern: simulated intake, document/security
+checks and human approval with sample vendors, not the full six-category scorecard.
+No runtime app generation or external vendor communication is claimed.
+
+## Clash discovery
 
 Parent dev `:5173` uses child `:5186`; parent preview `:4173` uses child `:4186`, retaining the current loopback hostname and protocol. `VITE_CLASH_APP_URL` overrides this; `VITE_DEMO_APP_URL` is the legacy fallback. Addresses accept HTTPS or loopback HTTP, without URL credentials.
 
@@ -49,10 +87,10 @@ No iframe, new-tab bridge, `postMessage` handshake or callback backend is used. 
 
 Both versions use the same executable app with different supported presentation settings. This is a configuration extension, not proof of generated code or immutable code releases. The child must preserve canonical sample/rule/clash results while changing visual encoding. Baseline text remains accessible.
 
-Unrelated finance/vendor/submittal requests and unsupported XML/IFC/issue-triage requests clarify rather than matching this app. Missing or offline discovery never authorizes automatic CREATE. Requesters and version history persist in this browser; persona switching is a simulation, not shared authentication.
+Unrelated finance/submittal requests and unsupported XML/IFC/issue-triage requests clarify rather than matching this app. Missing or offline discovery never authorizes automatic CREATE. Requesters and version history persist in this browser; persona switching is a simulation, not shared authentication.
 
 ## Verification boundary
 
-Fifteen domain/discovery tests pass, including strict manifests, offline/timeout/cancellation failures, v1 preservation, requester persistence, safe launch/return URLs and repeated-request reuse. Cross-app browser verification passed on both dev and production-preview ports: automatic discovery, v1 launch, second-teammate extension, v2 launch, repeat reuse, return persistence and reopening v1. Both presentations showed the same six sample clashes; the child has 67 passing tests. Headless visual checks used the plan fallback because WebGL was unavailable.
+The original fifteen clash domain/discovery tests cover strict manifests, offline/timeout/cancellation failures, v1 preservation, requester persistence, safe launch/return URLs and repeated-request reuse. Prior clash browser verification passed on both dev and production-preview ports: automatic discovery, v1 launch, second-teammate extension, v2 launch, repeat reuse, return persistence and reopening v1. Both presentations showed the same six sample clashes; the child has 67 passing tests. Headless visual checks used the plan fallback because WebGL was unavailable.
 
 QM, GBrain and live discovery from conversations are not connected. Opportunity cards remain prepared analysis of the checked-in synthetic corpus. Historical planning documents describe broader proposals, not current runtime guarantees.

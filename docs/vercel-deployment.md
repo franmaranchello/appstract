@@ -28,7 +28,12 @@ prepared pattern demo and deterministic sample detector.
 The current main branch is a static Vite/React demo. `vercel.json` installs with
 `npm ci`, builds with `npm run build`, and serves `dist`. Use Vercel's Node 24.x
 runtime. Navigation uses URL fragments, so no catch-all SPA rewrite is needed.
-In particular, missing `/api/*` and child-app paths must not return parent HTML.
+The vendor integration adds a bundled HTML entry at `/apps/vendor-approval/`
+and its manifest at `/apps/vendor-approval/app-manifest.json`. `npm run build`
+emits both into `dist`; the existing install/build/output settings need no changes.
+Vendor routes use hashes, so refresh stays on the child HTML entry. This addition
+has been verified locally; the hosted deployment snapshots above predate it.
+In particular, missing `/api/*` and unbundled child-app paths must not return parent HTML.
 
 ## Link and preview
 
