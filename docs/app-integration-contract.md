@@ -1,43 +1,58 @@
-# Appstract ↔ generated app: hackathon handoff
+# Appstract ↔ clash app: implemented mockup contract
 
-**90-minute scope.** This replaces the larger proposed integration framework, archived in `.context/plans/archive/full-integration-contract.md`. No framework implementation required.
+Appstract automatically discovers the separately running clash app. It owns browser-local app/version/request history and routing. The separate repository owns the canonical sample, computation and result UI. There is no Connect or registration UI, backend registry, generated-code pipeline or result receipt protocol.
 
-## Ownership — confirmed by the user
+## Discovery
 
-- Appstract: histories, evidence, suggestions, approval, registry IDs, routing and version metadata.
-- Separate app repo: canonical sample fixture, units/rule, all sample computation, result/report UI, v1/v2 presentation.
-- Appstract never calculates clashes or supplies a competing canonical result set.
-- The sibling plan changed concurrently and briefly assumed a parent executor. This explicit user-confirmed boundary supersedes that assumption. Real IFC remains optional; no full IFC/WASM gate today.
+Parent dev `:5173` uses child `:5186`; parent preview `:4173` uses child `:4186`, retaining the current loopback hostname and protocol. `VITE_CLASH_APP_URL` overrides this; `VITE_DEMO_APP_URL` is the legacy fallback. Addresses accept HTTPS or loopback HTTP, without URL credentials.
 
-## Freeze these fields together in the first ten minutes
+The child serves `app-manifest.json` from its app root (Vite source: `public/app-manifest.json`) and permits the parent's cross-origin fetch. The current validator requires exactly these fields and values; presentation order may vary:
+
+```json
+{
+  "schemaVersion": 1,
+  "appId": "appstract.clash-check",
+  "name": "Clash detection",
+  "fixtureId": "sample-building",
+  "baselineVersionId": "clash-v1",
+  "presentations": ["baseline", "non-color"]
+}
+```
+
+`discoverClashApp(baseUrl, signal?)` fetches without cache or redirects, validates the manifest and uses its directory as the launch root. Invalid manifests, network failures, cancellation and a four-second timeout return named `AppDiscoveryError` failures. There is no fallback app creation. Retry checks the running app again.
+
+`mergeDiscoveredApp` retains valid saved `clash-v1`/`clash-v2` records only for the canonical app ID, while updating the discovered address/name. Foreign or malformed versions do not carry over.
+
+## Same-tab launch and return
+
+Appstract uses `location.assign` with a URL fragment:
 
 ```ts
 type DemoLaunch = {
-  appId: string;
-  appVersionId: string;
-  sourceRequestId: string;
+  appId: 'appstract.clash-check';
+  appVersionId: 'clash-v1' | 'clash-v2';
+  sourceRequestId: string; // local request-version marker, not authenticated identity
   mode: 'sample';
   presentation: 'baseline' | 'non-color';
-  fixtureId: string; // owned and interpreted by the app repo
+  fixtureId: 'sample-building';
+  returnTo?: string; // validated HTTPS or loopback HTTP parent URL
 };
 ```
 
-Agree one app URL and supported fixture ID. Pass the small launch record using whatever the app already supports; default is an explicit Open app link with a URL fragment that the app validates. Do not put credentials, transcript text or model bytes in the URL. Unrecognized fields/modes fail visibly. Register the URL locally; model output cannot redirect to an arbitrary site.
+The child reads `new URLSearchParams(location.hash.slice(1))`, validates supported values, selects the requested presentation and offers Back to Appstract using `returnTo`. The parent supplies its request-page fragment so the next teammate can continue. Transcript text, model files and credentials are not passed. The child must validate the return address before linking to it.
 
-The same deployed app may support two allowlisted configurations: v1 baseline and v2 non-color. Appstract stores their parent/version identities and capability delta. Call this a configuration extension. It does not prove code generation or immutable code releases. The external app shows supplied version/mode and computes the same sample through one canonical algorithm.
+No iframe, new-tab bridge, `postMessage` handshake or callback backend is used. The parent records an open/reuse request; navigation alone is never a successful-run receipt.
 
-A newly registered prepared app must be labeled prepared/registered, not generated. If QM actually produces a new revision during the demo, retain the run and revision link as evidence. Approval of the brief authorizes that bounded work; do not add a generic release-review subsystem today.
+## Reuse and extension
 
-## Result and return
+“Run clash detection” reuses the available version. A contextual request such as “I'm color-blind, can you make the same tool easier to read?” extends baseline `clash-v1` to `clash-v2`, preserving app identity and v1. The new version stores the request and optional `requestedBy` persona. Repeating the extension is idempotent; requesting accessible presentation again reuses v2.
 
-The app displays its own result and offers a Back to Appstract link. Parent does not need to receive result payloads for the two-act demo. It can show “App opened” but must not infer “Run succeeded.” No iframe, postMessage handshake, callback backend or receipt export is required unless already working. If an existing return path exists, preserve app/version/request identities and validate it; don't build a new framework to anticipate it.
+Both versions use the same executable app with different supported presentation settings. This is a configuration extension, not proof of generated code or immutable code releases. The child must preserve canonical sample/rule/clash results while changing visual encoding. Baseline text remains accessible.
 
-Baseline text remains accessible; v2 adds labels/shapes/non-color diagram encoding. Preserve same sample/rule/result identity when only presentation changes. Real-IFC claims require the app team's separate implementation evidence and are outside this baseline.
+Unrelated finance/vendor/submittal requests and unsupported XML/IFC/issue-triage requests clarify rather than matching this app. Missing or offline discovery never authorizes automatic CREATE. Requesters and version history persist in this browser; persona switching is a simulation, not shared authentication.
 
-## Provider scope
+## Verification boundary
 
-QM: one existing scoped build/extension, if already reachable. GBrain: one explicit app-summary write and fresh-request lookup, if a dedicated connection already works. Ten-minute combined readiness budget. No provisioning, personal-brain mutation, generic adapters/outbox or new OAuth service setup today. Disconnected providers are visibly disconnected; local catalog reuse still works.
+Fifteen domain/discovery tests pass, including strict manifests, offline/timeout/cancellation failures, v1 preservation, requester persistence, safe launch/return URLs and repeated-request reuse. Cross-app browser verification of the updated flow is pending. Successful fixture computation and identical v1/v2 results must be verified in the child; parent unit tests do not establish those claims.
 
-## Coordination check
-
-Before the teams split, agree the URL, these field names, fixture ID, presentation meanings and return link. Then independently implement the parent UI and app result surface. The exact-repeat test and v1/v2 sample-invariance test are the shared acceptance checks. No edits were made to the sibling repository during this planning revision.
+QM, GBrain and live discovery from conversations are not connected. Opportunity cards remain prepared analysis of the checked-in synthetic corpus. Historical planning documents describe broader proposals, not current runtime guarantees.
