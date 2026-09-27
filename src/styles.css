@@ -2353,7 +2353,7 @@ button.version-item:hover {
   align-items: start;
   gap: 4px 24px;
 }
-.lrow .eyebrow {
+.lrow .signal-tags {
   max-width: 440px;
   padding-top: 7px;
   display: flex;
@@ -2367,7 +2367,7 @@ button.version-item:hover {
   text-transform: uppercase;
   color: var(--muted);
 }
-.lrow .eyebrow span {
+.lrow .signal-tags span {
   cursor: help;
 }
 .lrow .who {
@@ -2765,7 +2765,7 @@ button.version-item:hover {
   .lrow .lhead {
     grid-template-columns: 1fr;
   }
-  .lrow .eyebrow {
+  .lrow .signal-tags {
     justify-content: flex-start;
     order: -1;
     max-width: none;

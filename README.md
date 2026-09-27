@@ -27,7 +27,7 @@ For a different app address, copy `.env.example` to `.env.local` and set `VITE_C
 
 ## Try the two-person flow
 
-1. Select histories → **Find patterns** → select **Clash coordination**. Appstract checks the running app and shows **Existing app found** beside the source evidence.
+1. Select histories → **Find patterns**. The ledger lists each recurring job with its measured sessions, tokens and chat time, the signals behind it and its cadence across the corpus. Expand **Clash coordination**: Appstract checks the running app and shows **Existing app found** above the chat outputs and the proposed tool.
 2. Click **Open app** to run v1. Navigation stays in the same tab and passes the pinned version to the separate app.
 3. Use the app's **Back to Appstract** link. Choose another teammate and ask: “I'm color-blind. Can you make the same tool easier to read?”
 4. **Find app** → **Extend app & open v2**. The same app opens with labels, shapes and non-color markers.
@@ -48,7 +48,9 @@ The separate app owns sample geometry, computation and result UI. Appstract owns
 | `src/App.tsx` | Views, requests and local persistence |
 | `src/registry.ts` | Manifest discovery, errors and saved-version reconciliation |
 | `src/domain.ts` | Routing, versions, validation and launch URLs |
-| `src/data.ts` | Prepared patterns and original source excerpts |
+| `src/data.ts` | Prepared patterns, source excerpts and the derived ledger measurements |
+| `src/opportunities.ts` | Ledger copy per pattern: plan, rules, costs and evidence selections |
+| `src/markdown.tsx` | Small markdown subset used to preview transcript turns |
 | `src/styles.css` | Modul styling and responsive layout |
 | `chat-histories/json/` | Supplied synthetic conversations |
 

@@ -814,7 +814,7 @@ export default function App() {
                         <div className="ltext">
                           <div className="lhead">
                             <h3>{row.title}</h3>
-                            <div className="eyebrow" aria-label="Signals">
+                            <div className="signal-tags" aria-label="Signals">
                               {row.signalLabels.map((signal) => (
                                 <span key={signal.label} title={signal.def}>
                                   {signal.label}
