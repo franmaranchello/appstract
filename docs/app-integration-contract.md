@@ -53,6 +53,6 @@ Unrelated finance/vendor/submittal requests and unsupported XML/IFC/issue-triage
 
 ## Verification boundary
 
-Fifteen domain/discovery tests pass, including strict manifests, offline/timeout/cancellation failures, v1 preservation, requester persistence, safe launch/return URLs and repeated-request reuse. Cross-app browser verification of the updated flow is pending. Successful fixture computation and identical v1/v2 results must be verified in the child; parent unit tests do not establish those claims.
+Fifteen domain/discovery tests pass, including strict manifests, offline/timeout/cancellation failures, v1 preservation, requester persistence, safe launch/return URLs and repeated-request reuse. Cross-app browser verification passed on both dev and production-preview ports: automatic discovery, v1 launch, second-teammate extension, v2 launch, repeat reuse, return persistence and reopening v1. Both presentations showed the same six sample clashes; the child has 67 passing tests. Headless visual checks used the plan fallback because WebGL was unavailable.
 
 QM, GBrain and live discovery from conversations are not connected. Opportunity cards remain prepared analysis of the checked-in synthetic corpus. Historical planning documents describe broader proposals, not current runtime guarantees.
