@@ -18,6 +18,7 @@ export interface HistorySource {
   color: "blue" | "red" | "yellow" | "ink";
 }
 export interface Evidence {
+  qmSessionId?: string;
   id: string;
   sessionId: string;
   title: string;
@@ -26,6 +27,7 @@ export interface Evidence {
   author: string;
 }
 export interface Pattern {
+  workflow?: "clash-coordination" | "other";
   id: string;
   rank: number;
   title: string;
