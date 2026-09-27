@@ -1,5 +1,30 @@
 # Vercel deployment
 
+## Current hosted demo
+
+- Parent: <https://appstract-nine.vercel.app> (`radical-labs/appstract`).
+- Clash app: <https://appstract-clash-detection.vercel.app>
+  (`radical-labs/appstract-clash-detection`).
+- Parent production `VITE_CLASH_APP_URL` points to the clash app above; child
+  production `VITE_APPSTRACT_URL` points to the parent above. Both are public
+  build configuration stored in Vercel, and both builds have been deployed.
+- The child manifest allows the parent origin via its checked-in Vercel CORS
+  header. Use the canonical parent URL above for the paired demo.
+
+On 2026-09-27, the live pair passed a visible-browser check with actual 3D
+rendering: automatic discovery, v1 with six sample clashes, Back to Appstract,
+Claudia's labels-and-shapes v2, refresh persistence, repeating the extension
+reusing v2 without v3, and reopening v1. Both versions produced the same six
+pairs and model fingerprint. Pair isolation also worked. The child has 67
+passing tests; both GitHub checks passed before its deployment configuration
+was merged in bauhaus-clash-detection PR #3.
+
+Verified deployments: parent `dpl_FsUUmq9n7BbjdpTX6TLKnWCHaJ2m` from main
+`2a221a8`, child `dpl_BXqz5Y4qKQPvX582vFiZkgbKSzKV` from `ae53797` (merged
+as `9a44b13`). Later main-branch changes require their own deployment and
+verification. QM is still separate and unprovisioned; this flow uses the
+prepared pattern demo and deterministic sample detector.
+
 The current main branch is a static Vite/React demo. `vercel.json` installs with
 `npm ci`, builds with `npm run build`, and serves `dist`. Use Vercel's Node 24.x
 runtime. Navigation uses URL fragments, so no catch-all SPA rewrite is needed.
@@ -81,7 +106,7 @@ global CLI, user-scoped Vercel plugin, and shared OAuth MCP endpoint
 OAuth completion, authenticated MCP checks, project linkage, preview deployment,
 and live two-app/QM verification are separate checks.
 
-## Verified setup on 2026-09-27
+## Initial setup on 2026-09-27 (before child deployment)
 
 - Account: `franmaranchello`; team: `radical-labs`; project: `appstract`.
 - CLI 60.1.3 authenticated. Shared Vercel MCP OAuth succeeded; both
