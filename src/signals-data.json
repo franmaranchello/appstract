@@ -1,0 +1,1914 @@
+{
+  "signals": {
+    "prime": {
+      "label": "Re-priming",
+      "def": "Same firm-context paste at the top of the session"
+    },
+    "cadence": {
+      "label": "Fixed cadence",
+      "def": "Same job on a weekly or monthly rhythm with new inputs"
+    },
+    "shape": {
+      "label": "Repeated output",
+      "def": "Same table, memo or scorecard shape re-specified each time"
+    },
+    "rule": {
+      "label": "Rule re-taught",
+      "def": "A firm rule the assistant got wrong and had to be told again"
+    },
+    "script": {
+      "label": "Script lost",
+      "def": "A script written in chat, lost, and rebuilt worse"
+    },
+    "paste": {
+      "label": "Paste round-trip",
+      "def": "Export from a system, paste into chat, paste back into another"
+    },
+    "drift": {
+      "label": "Quality drift",
+      "def": "Same request, different or wrong-shaped answer"
+    }
+  },
+  "opps": [
+    {
+      "id": "clash-triage",
+      "name": "Clash triage & weekly issue report",
+      "kind": "Tool",
+      "who": [
+        "Priya"
+      ],
+      "line": "Turn a raw Navisworks export into grouped issues, a New / Carried / Gone diff, a tracker CSV and the Monday agenda.",
+      "signals": [
+        "prime",
+        "cadence",
+        "shape",
+        "rule",
+        "script",
+        "paste"
+      ],
+      "cost": "28–38 h / week across three projects (cd-018)",
+      "repeats": [
+        [
+          "Grouped issue table",
+          "19× in 8 sessions"
+        ],
+        [
+          "Coordination email",
+          "16× in 10 sessions"
+        ],
+        [
+          "Meeting agenda",
+          "9× in 8 sessions"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "cd-003",
+          "date": "2026-03-20",
+          "title": "first bayline html export into real issues",
+          "persona": "Priya",
+          "model": "Gemini 3 Pro",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-004",
+          "date": "2026-03-27",
+          "title": "the assistant keeps assigning structural the move",
+          "persona": "Priya",
+          "model": "Claude Sonnet 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-005",
+          "date": "2026-04-03",
+          "title": "bayline weekly report before permit submission",
+          "persona": "Priya",
+          "model": "GPT-5.4",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-006",
+          "date": "2026-04-10",
+          "title": "python parser for navisworks xml grouping",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-008",
+          "date": "2026-04-24",
+          "title": "same bayline friday triage but fewer rows",
+          "persona": "Priya",
+          "model": "Claude Sonnet 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-009",
+          "date": "2026-05-01",
+          "title": "diff this week against last week and call out stale six",
+          "persona": "Priya",
+          "model": "GPT-5.4",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-011",
+          "date": "2026-05-29",
+          "title": "mercer bid set coordination report",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "cd-015",
+          "date": "2026-07-17",
+          "title": "lost the xml grouping script and need it again",
+          "persona": "Priya",
+          "model": "Gemini 3 Pro",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-016",
+          "date": "2026-07-24",
+          "title": "kestrel first usable clash report lab gas exhaust vibration",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Kestrel"
+        },
+        {
+          "id": "cd-020",
+          "date": "2026-09-18",
+          "title": "friday triage again bayline kestrel mercer mixed",
+          "persona": "Priya",
+          "model": "Claude Sonnet 4.5",
+          "project": "Bayline"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "cd-009",
+          "n": 2,
+          "role": "assistant",
+          "speaker": "GPT-5.4",
+          "at": "2026-05-01T11:19:21-07:00",
+          "title": "diff this week against last week and call out stale six",
+          "text": "## Bayline issue diff\n\n| Change | Issue ID | Priority | Owner | Location | Summary | Age after this week |\n|---|---|---:|---|---|---|---:|\n| Carried | BL-L2-STR-MECH-01 | P1 | Pemberton | L2 G4/E | Duct through beam | 7 weeks |\n| Carried | BL-L2-STR-MECH-02 | P1 | Pemberton | L2 G5/E | RA duct through beam | 6 weeks |\n| Carried | BL-L1-STR-PLUMB-03 | P1 | Pemberton | L1 D3/B | Sanitary through grade beam | 7 weeks |\n| Carried | BL-L3-MECH-FP-04 | P1 | Kirsch | L3 H6/F | FP blocks VAV access | 3 weeks |\n| Carried | BL-L2-ARCH-FP-05 | P2 | Kirsch | L2 J2/C | Drops vs ceiling false positives | 5 weeks |\n| Gone | BL-L4-MECH-PLUMB-06 | P2 | Pemberton | L4 F5/D | EA duct vs CW riser | — |\n| New | BL-L3-MECH-FP-07 | P1 | Kirsch | L3 J7/G | FP main blocks FCU access | 1 week |\n| New | BL-SITE-CIVIL-STR-08 | P2 | Avalon | North drive | Storm line at footing | 1 week |\n\n**6+ week stale items:**\n- `BL-L2-STR-MECH-01` — Pemberton — 7 weeks\n- `BL-L2-STR-MECH-02` — Pemberton — 6 weeks\n- `BL-L1-STR-PLUMB-03` — Pemberton — 7 weeks\n\nThese should be first on the agenda because they are P1 and stale.",
+          "cap": "New / Carried / Gone diff, rebuilt by hand from HTML pasted into Excel",
+          "flag": null
+        },
+        {
+          "sid": "cd-004",
+          "n": 2,
+          "role": "assistant",
+          "speaker": "Claude Sonnet 4.5",
+          "at": "2026-03-27T10:32:21-07:00",
+          "title": "the assistant keeps assigning structural the move",
+          "text": "| Issue | Owner | Action |\n|---|---|---|\n| BL-L2-STR-MECH-01 | Sturgis Structural / Pemberton MEP | Structural to review beam location and coordinate duct routing with Pemberton. |\n| BL-L2-STR-FP-02 | Sturgis Structural / Kirsch FP | Structural to coordinate brace conflict with fire protection main. |\n| BL-L1-STR-PLUMB-03 | Sturgis Structural / Pemberton Plumbing | Structural to review grade beam conflict and advise on sleeve/offset. |\n\nThese are all Priority 1 because they affect structural intersections or ceiling plenum routing.",
+          "cap": "Structural assigned the move, against the firm rule",
+          "flag": "Rule broken"
+        },
+        {
+          "sid": "cd-009",
+          "n": 10,
+          "role": "assistant",
+          "speaker": "GPT-5.4",
+          "at": "2026-05-01T11:23:33-07:00",
+          "title": "diff this week against last week and call out stale six",
+          "text": "```csv\nissue_id,change,age_weeks,owner,next_action,agenda_order\nBL-L2-STR-MECH-01,Carried,7,Pemberton MEP,Provide revised duct routing/elevation or written path to resolution,1\nBL-L2-STR-MECH-02,Carried,6,Pemberton MEP,Provide revised return duct routing/elevation or written path to resolution,2\nBL-L1-STR-PLUMB-03,Carried,7,Pemberton Plumbing,Provide offset or sleeve request with invert/elevation,3\nBL-L3-MECH-FP-04,Carried,3,Kirsch Fire Protection,Adjust FP routing or confirm service clearance,4\nBL-L2-ARCH-FP-05,Carried,5,Kirsch Fire Protection,Remodel sprinkler drops to ceiling elevation and identify true conflicts,6\nBL-L4-MECH-PLUMB-06,Gone,,Pemberton MEP,Verify absent in next federation before marking Resolved,\nBL-L3-MECH-FP-07,New,1,Kirsch Fire Protection,Move FP main or document FCU service clearance,5\nBL-SITE-CIVIL-STR-08,New,1,Avalon Civil,Review storm alignment at footing with Sturgis,7\n```",
+          "cap": "Tracker CSV she pastes into her own spreadsheet",
+          "flag": null
+        },
+        {
+          "sid": "cd-009",
+          "n": 12,
+          "role": "assistant",
+          "speaker": "GPT-5.4",
+          "at": "2026-05-01T11:24:36-07:00",
+          "title": "diff this week against last week and call out stale six",
+          "text": "## Bayline coordination agenda — 45 minutes\n\n1. **Carried P1 duct/structure items — 12 min**\n   - `BL-L2-STR-MECH-01`, `BL-L2-STR-MECH-02`\n   - Owner: Pemberton MEP\n   - Decision: revised duct routing/elevation and date for model update.\n\n2. **Carried P1 sanitary/grade beam item — 8 min**\n   - `BL-L1-STR-PLUMB-03`\n   - Owner: Pemberton Plumbing\n   - Decision: offset vs sleeve request; confirm invert/elevation for Sturgis review.\n\n3. **Fire protection access conflicts — 8 min**\n   - `BL-L3-MECH-FP-04`, `BL-L3-MECH-FP-07`\n   - Owner: Kirsch Fire Protection\n   - Decision: pipe relocation or documented access clearance.\n\n4. **Civil/structural north drive item — 7 min**\n   - `BL-SITE-CIVIL-STR-08`\n   - Owner: Avalon Civil\n   - Decision: storm alignment adjustment or structural review path.\n\n5. **Report cleanup / closeout rules — 5 min**\n   - Gone items remain Reviewed until absent in next federation, then Resolved.\n   - Model QA items stay in PDF unless they block ceiling/access decisions.\n\n6. **Next upload commitments — 5 min**\n   - Thursday 6 PM, shared coordinates, versioned filenames.",
+          "cap": "45-minute agenda, rebuilt every week",
+          "flag": null
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "Navisworks XML clash export (feet)",
+          "Last week's grouped issue list",
+          "Model upload log (filename, date)"
+        ],
+        "rules": [
+          "Report by issue, never by raw clash",
+          "IDs: PROJECT-LEVEL-DISCIPLINE PAIR-NN",
+          "Ignore insulation clashes under 1/2\"",
+          "Structural reviews, never owns the move",
+          "Plenum under 10'-0\" AFF = P1; corridors need 8\" MEP clearance",
+          "Stale = carried 6+ weeks; \"known / next model\" is not closure"
+        ],
+        "outputs": [
+          "Grouped issue table with owner + reviewer",
+          "New / Carried / Gone diff with stale flags",
+          "Tracker CSV (issue_id, change, age_weeks, owner, next_action, agenda_order)",
+          "Agenda at 45 or 15 minutes",
+          "One email per consultant"
+        ],
+        "steps": [
+          "Parser for the XML export, versioned in this repo, not in a chat",
+          "Rule file the parser reads, editable by Priya",
+          "Diff against last week's saved run",
+          "Templates for agenda, CSV and consultant email"
+        ],
+        "effort": "M"
+      },
+      "metrics": {
+        "sessions": 10,
+        "tokens": 29818,
+        "minutes": 114,
+        "scope": "sessions"
+      }
+    },
+    {
+      "id": "close-pack",
+      "name": "Monthly close pack",
+      "kind": "Tool",
+      "who": [
+        "Marcus"
+      ],
+      "line": "Clean the Vantagepoint export, compute earned fee and burn, and draft Wes's pack and Elena's page from one run.",
+      "signals": [
+        "prime",
+        "cadence",
+        "shape",
+        "rule",
+        "script",
+        "drift"
+      ],
+      "cost": "3.0 days direct, 3.5 elapsed, every month (fin-017)",
+      "repeats": [
+        [
+          "13-week cash-flow table",
+          "16× in 12 sessions"
+        ],
+        [
+          "WIP / RAG table",
+          "12× in 8 sessions"
+        ],
+        [
+          "Elena one-page version",
+          "11× in 8 sessions"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "fin-003",
+          "date": "2026-03-27",
+          "title": "march wip rag and elena page",
+          "persona": "Marcus",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-005",
+          "date": "2026-04-24",
+          "title": "april close same pack different numbers",
+          "persona": "Marcus",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-008",
+          "date": "2026-05-29",
+          "title": "may close arithmetic fight",
+          "persona": "Marcus",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-010",
+          "date": "2026-06-26",
+          "title": "june close northgate over ninety",
+          "persona": "Marcus",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-013",
+          "date": "2026-07-25",
+          "title": "lost the python script july close",
+          "persona": "Marcus",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-016",
+          "date": "2026-08-28",
+          "title": "august close same drill",
+          "persona": "Marcus",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-018",
+          "date": "2026-09-09",
+          "title": "principals quarterly review prep",
+          "persona": "Marcus",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-020",
+          "date": "2026-09-18",
+          "title": "september close prep same template",
+          "persona": "Marcus",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "fin-005",
+          "n": 2,
+          "role": "assistant",
+          "speaker": "Claude Opus 4.5",
+          "at": "2026-04-24T08:59:00-07:00",
+          "title": "april close same pack different numbers",
+          "text": "Draft readout using your fee-burn thresholds:\n\n| Project | RAG | Spent vs earned | Variance comment | Action |\n|---|---:|---:|---|---|\n| Mercer Commons | GREEN | $4,440k spent / $5,035k earned (88.2%) | within fee but verify late timesheets | bill clean WIP and keep phase coding current |\n| Bayline Medical Pavilion | AMBER | $3,375k spent / $3,329k earned (101.4%) | near threshold; remaining fee is thin | confirm percent complete before invoice |\n| Northgate Civic Library | GREEN | $1,840k spent / $2,122k earned (86.7%) | within fee but verify late timesheets | fix Denver backup format and escalate AR weekly |\n| Kestrel Labs Phase II | AMBER | $1,788k spent / $1,844k earned (96.9%) | near threshold; remaining fee is thin | confirm percent complete before invoice |\n| Harbor Point pursuit | RED | $186k spent / $0k earned (999%) | unsigned pursuit cost, not backlog | keep outside signed backlog and book-to-bill |\n\nPortfolio AR is $779k. Lead the narrative with cash conversion, fee burn, and authorization discipline rather than billed volume.\n\nFor Wes: this is a cash conversion and authorization story. Signed work exists, but late timesheets and unapproved additional services are turning recoverable effort into write-off risk.\n\nAdditional detail I would keep behind the summary, because it is exactly where the close usually goes sideways:\n\n- Timesheets: do not accept PM percent-complete comments until late time is posted through the Friday week-ending cutoff. If a designer books CD labor on Monday after the report is cut, the prior close will overstate fee remaining and understate burn.\n- Net revenue: strip consultants and reimbursables before discussing ERR, direct labor multiplier, realization, or break-even. Pass-through dollars can help cash when collected but they do not create HRA labor margin.\n- Unbilled versus billed: unbilled WIP is not the same as cash. Treat it as a billing queue item until backup is accepted; Northgate is the proof point because the work exists but the City can still block payment on format.\n- Phase percent complete: SD/DD/CD/BN/CA must tie to the phase budget, not to how tired the team feels. Kestrel needs a manual review because DD and CD are both open and labor is landing in the wrong bucket.\n- AR aging: call out 61-90 and 90+ by named invoice. A generic DSO comment hides the operational action, while a named invoice tells Wes who needs to call whom.\n\n\nI will keep the output in a paste-back format: short headings, $000 values, no cents, and decision language tied to an owner or next action. I will also separate the four concepts that tend to get blended in project reviews: fee performance, invoice readiness, collection timing, and firm cash. That separation matters because one project can be acceptable on earned fee while still hurting cash, or can produce a large invoice that does not improve net revenue or labor multiplier.\n\n\nWorkpaper detail for the finance file:\n\n1. Revenue basis — calculate project productivity on net revenue only. Consultant invoices, reimbursables, printing, travel, and permit pass-throughs can be material to cash but should not be used to make HRA's labor multiplier look better.\n2. Earned fe",
+          "cap": "April close: WIP RAG table",
+          "flag": null
+        },
+        {
+          "sid": "fin-008",
+          "n": 2,
+          "role": "assistant",
+          "speaker": "Gemini 3 Pro",
+          "at": "2026-05-29T15:24:00-07:00",
+          "title": "may close arithmetic fight",
+          "text": "Draft readout using your fee-burn thresholds:\n\n| Project | RAG | Spent vs earned | Variance comment | Action |\n|---|---:|---:|---|---|\n| Mercer Commons | GREEN | $5,435k spent / $5,833k earned (93.2%) | within fee but verify late timesheets | bill clean WIP and keep phase coding current |\n| Bayline Medical Pavilion | AMBER | $3,770k spent / $3,767k earned (100.1%) | near threshold; remaining fee is thin | confirm percent complete before invoice |\n| Northgate Civic Library | GREEN | $2,040k spent / $2,285k earned (89.3%) | within fee but verify late timesheets | fix Denver backup format and escalate AR weekly |\n| Kestrel Labs Phase II | RED | $2,364k spent / $2,226k earned (106.2%) | spent is ahead of earned fee or fee remaining is negative | PM recovery plan, add-service authorization, or write-off number |\n| Harbor Point pursuit | RED | $254k spent / $0k earned (999%) | unsigned pursuit cost, not backlog | keep outside signed backlog and book-to-bill |\n\nPortfolio AR is $850k. Lead the narrative with cash conversion, fee burn, and authorization discipline rather than billed volume.\n\nTotal fee remaining across listed projects is $379k.\n\nAdditional detail I would keep behind the summary, because it is exactly where the close usually goes sideways:\n\n- Timesheets: do not accept PM percent-complete comments until late time is posted through the Friday week-ending cutoff. If a designer books CD labor on Monday after the report is cut, the prior close will overstate fee remaining and understate burn.\n- Net revenue: strip consultants and reimbursables before discussing ERR, direct labor multiplier, realization, or break-even. Pass-through dollars can help cash when collected but they do not create HRA labor margin.\n- Unbilled versus billed: unbilled WIP is not the same as cash. Treat it as a billing queue item until backup is accepted; Northgate is the proof point because the work exists but the City can still block payment on format.\n- Phase percent complete: SD/DD/CD/BN/CA must tie to the phase budget, not to how tired the team feels. Kestrel needs a manual review because DD and CD are both open and labor is landing in the wrong bucket.\n- AR aging: call out 61-90 and 90+ by named invoice. A generic DSO comment hides the operational action, while a named invoice tells Wes who needs to call whom.\n\n\nI will keep the output in a paste-back format: short headings, $000 values, no cents, and decision language tied to an owner or next action. I will also separate the four concepts that tend to get blended in project reviews: fee performance, invoice readiness, collection timing, and firm cash. That separation matters because one project can be acceptable on earned fee while still hurting cash, or can produce a large invoice that does not improve net revenue or labor multiplier.\n\n\nWorkpaper detail for the finance file:\n\n1. Revenue basis — calculate project productivity on net revenue only. Consultant invoices, reimbursables, printing, travel, and permit pass-throughs can be material to cash but should not be used to make HRA's labor multiplier look better.\n2. Earned fee — for each phase, earned fee should be phase fee multiplied by PM-approved percent compl",
+          "cap": "May close: the same table, new numbers",
+          "flag": null
+        },
+        {
+          "sid": "fin-008",
+          "n": 3,
+          "role": "user",
+          "speaker": "Marcus",
+          "at": "2026-05-29T15:28:00-07:00",
+          "title": "may close arithmetic fight",
+          "text": "Check the total. 92 + 92 - 45 + 194 - 254 is not 379. That's 79 including Harbor, or 333 excluding Harbor. This is why I don't trust chat for finance totals.",
+          "cap": "Marcus catches a wrong total",
+          "flag": "Arithmetic error"
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "Vantagepoint WIP export (CSV)",
+          "Late-timesheet list",
+          "AR aging",
+          "PM percent-complete notes"
+        ],
+        "rules": [
+          "Net revenue = gross − consultants − reimbursables",
+          "Never a multiplier on gross",
+          "Cut at Friday week-ending; FY ends Dec 31",
+          "$000, no cents",
+          "Burn: red >105%, amber 95–105%, green <95%",
+          "Label every figure actual, forecast or PM judgment"
+        ],
+        "outputs": [
+          "WIP RAG table by project and phase",
+          "Earned fee = contract × % complete; burn = spent ÷ earned",
+          "Wes narrative, five bullets with owners",
+          "Elena page: cash first, then backlog"
+        ],
+        "steps": [
+          "Export cleaner that tolerates column drift",
+          "Totals computed in code, never by the model",
+          "Pack templates for Wes and Elena",
+          "Pre-close checklist: timesheets, reimbursables, phase coding, AR backup"
+        ],
+        "effort": "M"
+      },
+      "metrics": {
+        "sessions": 8,
+        "tokens": 25336,
+        "minutes": 304,
+        "scope": "sessions"
+      }
+    },
+    {
+      "id": "vendor-scorecard",
+      "name": "Vendor intake & scorecard",
+      "kind": "Tool",
+      "who": [
+        "Dana"
+      ],
+      "line": "Tier the vendor from its answers, score six categories with weights, list the gaps and draft the follow-up questions.",
+      "signals": [
+        "prime",
+        "shape",
+        "rule",
+        "paste"
+      ],
+      "cost": "One grind session per vendor, 14 vendors in 6 months",
+      "repeats": [
+        [
+          "Follow-up question list",
+          "25× in 14 sessions"
+        ],
+        [
+          "Six-category scorecard",
+          "16× in 14 sessions"
+        ],
+        [
+          "Memo / email to owner",
+          "20× in 13 sessions"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "ven-002",
+          "date": "2026-03-06",
+          "title": "pixelForge rendering plugin before mercer 75",
+          "persona": "Dana",
+          "model": "Claude Sonnet 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-003",
+          "date": "2026-03-18",
+          "title": "modelmosaic cloud coordination review grind",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Bayline"
+        },
+        {
+          "id": "ven-004",
+          "date": "2026-03-24",
+          "title": "arborspan structural engineer due diligence",
+          "persona": "Dana",
+          "model": "Claude Opus 4.5",
+          "project": "Harbor Point"
+        },
+        {
+          "id": "ven-005",
+          "date": "2026-04-02",
+          "title": "minuteLynx ai notetaker already in use",
+          "persona": "Dana",
+          "model": "Copilot (M365)",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-007",
+          "date": "2026-04-16",
+          "title": "docuHarbor vault migration review",
+          "persona": "Dana",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-009",
+          "date": "2026-04-30",
+          "title": "gridpin revit add-in tiering argument",
+          "persona": "Dana",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-010",
+          "date": "2026-05-07",
+          "title": "lumaQuay offshore visualization contract grind",
+          "persona": "Dana",
+          "model": "Claude Opus 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-011",
+          "date": "2026-05-15",
+          "title": "peopleNest hr onboarding tier 2 review",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-012",
+          "date": "2026-05-22",
+          "title": "signetRail e-sign contract review",
+          "persona": "Dana",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-013",
+          "date": "2026-06-05",
+          "title": "northgate furniture dealer due diligence",
+          "persona": "Dana",
+          "model": "Copilot (M365)",
+          "project": "Northgate"
+        },
+        {
+          "id": "ven-014",
+          "date": "2026-06-11",
+          "title": "draftVale model cleanup outsourcing rabbit hole",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-016",
+          "date": "2026-06-26",
+          "title": "echoGrid av integrator northgate",
+          "persona": "Dana",
+          "model": "Gemini 3 Pro",
+          "project": "Northgate"
+        },
+        {
+          "id": "ven-017",
+          "date": "2026-07-02",
+          "title": "blueAnvil metal fabricator mercer",
+          "persona": "Dana",
+          "model": "Copilot (M365)",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-020",
+          "date": "2026-09-18",
+          "title": "glassKite facade consultant six week stall",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "ven-002",
+          "n": 8,
+          "role": "assistant",
+          "speaker": "Claude Sonnet 4.5",
+          "at": "2026-03-06T16:28:28-08:00",
+          "title": "pixelForge rendering plugin before mercer 75",
+          "text": "Revised:\n\n| Category | Score | Weight | Rationale |\n|---|---:|---:|---|\n| Security | 2 | 25% | SOC 2 Type I is point-in-time and does not demonstrate operating effectiveness. No ISO 27001, no Type II yet, MFA cannot be centrally enforced on requested tier, audit logs are enterprise-only. |\n| Data & Privacy | 2 | 25% | Region can shift between North America/EU; AI service-improvement opt-out is account setting rather than contract; deletion/export terms are thin. |\n| Legal & Insurance | 1 | 20% | Cyber only $1M, no E&O, no named-additional-insured confirmation, liability capped at prior 3 months' fees. |\n| Operational Fit | 4 | 15% | Strong visual workflow fit for Mercer, but only if restricted to non-confidential test files. |\n| Commercial | 3 | 10% | Enterprise tier appears necessary to meet basic controls, changing cost. |\n| References | 2 | 5% | Need AEC references with model upload use case. |\n\nWeighted total: 2.25 / 5. Recommendation: **No for Tier 1 use**. Sandbox only if users certify no HRA/client/project models are uploaded.",
+          "cap": "Six-category scorecard, second attempt after Dana downgraded Security",
+          "flag": null
+        },
+        {
+          "sid": "ven-009",
+          "n": 7,
+          "role": "user",
+          "speaker": "Dana",
+          "at": "2026-04-30T14:32:06-07:00",
+          "title": "gridpin revit add-in tiering argument",
+          "text": "You did it again. Tier 1, not Tier 2. Also Tier 1 doesn't always require SOC if there is no vendor processing/storage? Our written gate says Type II or ISO for Tier 1, but for desktop-only maybe I need an exception. Help me phrase that without breaking the rule.",
+          "cap": "Desktop add-in tiered as Tier 2, twice",
+          "flag": "Rule broken"
+        },
+        {
+          "sid": "ven-002",
+          "n": 10,
+          "role": "assistant",
+          "speaker": "Claude Sonnet 4.5",
+          "at": "2026-03-06T16:32:50-08:00",
+          "title": "pixelForge rendering plugin before mercer 75",
+          "text": "Follow-up questions for PixelForge StudioCloud:\n\n1. Provide the latest SOC 2 Type II report, including auditor, audit period, bridge letter through current date, and all exceptions plus remediation status. If ISO 27001 is your control framework, provide certificate, scope, and Statement of Applicability.\n2. Confirm whether HRA project models, drawings, meeting notes, images, RFIs, or client data are stored, processed, or transmitted outside the United States. If yes, identify countries and subprocessors.\n3. Provide DPA language covering GDPR/CCPA where relevant, SCCs if data leaves the US/UK/EU context, deletion/export on termination, breach notification window, and subprocessor notice.\n4. Confirm SSO/SAML, SCIM, MFA enforcement, role-based administration, and audit-log export. Note whether these require enterprise tier.\n5. Provide evidence of encryption in transit and at rest, tenant isolation, key-management approach, BCP/DR, RTO/RPO/RTP, and cyber liability coverage naming HRA additional insured at $2M.\n6. If AI is involved, confirm contractually that vendor will not train, fine-tune, retain prompts, or improve models using HRA data, drawings, recordings, or derived outputs.\n7. Confirm whether PixelForge can contractually disable use of HRA data for service improvement, AI denoising model improvement, training, benchmarking, analytics, or derived-data reuse.\n8. Confirm whether HRA can purchase SAML SSO, SCIM, enforceable MFA, and audit-log export without unrelated add-ons.\n9. Provide revised insurance showing $2M cyber liability and HRA named additional insured, or confirm you cannot meet that requirement.",
+          "cap": "Pointed follow-up questions",
+          "flag": null
+        },
+        {
+          "sid": "ven-002",
+          "n": 12,
+          "role": "assistant",
+          "speaker": "Claude Sonnet 4.5",
+          "at": "2026-03-06T16:39:12-08:00",
+          "title": "pixelForge rendering plugin before mercer 75",
+          "text": "Subject: PixelForge request for Mercer renderings\n\nSandeep, Wes,\n\nI reviewed PixelForge for the Mercer rendering request. Because the plugin uploads model geometry/materials to the vendor’s cloud, this is Tier 1 under HRA’s vendor policy. On the evidence provided, I do not recommend approving it for project or client data before the 20 Mar milestone.\n\nThe blockers are specific: SOC 2 Type I only, no Type II/ISO 27001, non-US/EU processing possible, DPA and audit logs tied to higher tiers, no contractual no-training/no-service-improvement commitment, MFA enforcement limitations, cyber insurance below HRA’s $2M requirement, and a 3-month liability cap.\n\nIf the team needs it urgently, the safe path is a sandbox limited to generic/sample models only. No Mercer model, drawings, client material, or owner data should be uploaded until the Tier 1 gates are closed or Wes approves a documented exception.\n\nDana",
+          "cap": "Recommendation memo to Sandeep and Wes",
+          "flag": null
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "Vendor questionnaire answers or trust-center text",
+          "Contract / DPA excerpts",
+          "Requesting project and owner"
+        ],
+        "rules": [
+          "Tier 1 = touches project models or client data, even desktop-only",
+          "Tier 1 needs SOC 2 Type II or ISO 27001, a DPA, $2M cyber, HRA additional insured",
+          "AI tools need contractual no-training",
+          "Non-US storage needs Wes's sign-off"
+        ],
+        "outputs": [
+          "Tier with the reason",
+          "Scorecard: Security, Data & Privacy, Legal & Insurance, Operational Fit, Commercial, References (1–5, weighted)",
+          "Go / Go with conditions / No",
+          "Follow-up questions, memo, tracker line"
+        ],
+        "steps": [
+          "Intake form that captures answers once",
+          "Tier gate evaluated from answers, not from chat",
+          "Scorecard template with fixed weights",
+          "Writes the tracker line to the register"
+        ],
+        "effort": "S"
+      },
+      "metrics": {
+        "sessions": 14,
+        "tokens": 32531,
+        "minutes": 459,
+        "scope": "sessions"
+      }
+    },
+    {
+      "id": "submittal-comments",
+      "name": "Submittal review comments",
+      "kind": "Tool",
+      "who": [
+        "Tomás"
+      ],
+      "line": "Batch a submittal package into paragraph-numbered comments with a status and routing, instead of pasting it one chunk at a time.",
+      "signals": [
+        "prime",
+        "cadence",
+        "shape",
+        "paste",
+        "drift"
+      ],
+      "cost": "11 h / week of admin before any technical review (spec-020)",
+      "repeats": [
+        [
+          "Paragraph-numbered comment",
+          "76× in 9 sessions"
+        ],
+        [
+          "\"Same exercise, next chunk\" paste",
+          "most turns in 9 sessions"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "spec-003",
+          "date": "2026-03-18",
+          "title": "late catch on made-up astm in gypsum",
+          "persona": "Tomás",
+          "model": "Gemini 3 Pro",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-009",
+          "date": "2026-05-29",
+          "title": "bracket hunt night before bid",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-011",
+          "date": "2026-06-26",
+          "title": "lost the register export format",
+          "persona": "Tomás",
+          "model": "Copilot (M365)",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-012",
+          "date": "2026-07-10",
+          "title": "kestrel friday dump forty one submittals",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Kestrel"
+        },
+        {
+          "id": "spec-013",
+          "date": "2026-07-17",
+          "title": "kestrel ceiling tile submittal",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Kestrel"
+        },
+        {
+          "id": "spec-015",
+          "date": "2026-08-05",
+          "title": "cheaper metal panel substitution",
+          "persona": "Tomás",
+          "model": "Gemini 3 Pro",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-018",
+          "date": "2026-08-28",
+          "title": "door hardware resubmittal still wrong",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Kestrel"
+        },
+        {
+          "id": "spec-019",
+          "date": "2026-09-09",
+          "title": "one pager for elena on turnaround",
+          "persona": "Tomás",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "spec-020",
+          "date": "2026-09-18",
+          "title": "estimating submittal logging hours",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "spec-012",
+          "n": 4,
+          "role": "assistant",
+          "speaker": "Claude Sonnet 4.5",
+          "at": "2026-07-10T16:22:14-07:00",
+          "title": "kestrel friday dump forty one submittals",
+          "text": "For that pasted bit I would keep the status as Revise and Resubmit unless the rest of the package fills the gap.\n\nComment 2: Reference 07 27 26 1.3. Air barrier product data has no substrate primer compatibility or transition membrane details. The Contractor needs to resubmit with project-specific information demonstrating compliance with the Contract Documents. Manufacturer's standard details are acceptable only where they match the project details and do not shift coordination responsibility away from the Contractor.\n\nI would not make this a design-direction response. Keep it as a submittal review comment and, if the issue affects another discipline, add a routing note to the GC to coordinate with Sturgis Structural or Pemberton MEP as applicable.",
+          "cap": "Comment 2 of a 41-item Kestrel Friday dump",
+          "flag": null
+        },
+        {
+          "sid": "spec-009",
+          "n": 2,
+          "role": "assistant",
+          "speaker": "GPT-5.4",
+          "at": "2026-05-29T06:34:32-07:00",
+          "title": "bracket hunt night before bid",
+          "text": "For that pasted bit I would keep the status as N/A unless the rest of the package fills the gap.\n\nComment 1: Reference all sections. Find empty bracket choices [ ] and bracketed editing notes before issue. The Contractor needs to resubmit with project-specific information demonstrating compliance with the Contract Documents. Manufacturer's standard details are acceptable only where they match the project details and do not shift coordination responsibility away from the Contractor.\n\nI would not make this a design-direction response. Keep it as a submittal review comment and, if the issue affects another discipline, add a routing note to the GC to coordinate with Sturgis Structural or Pemberton MEP as applicable.",
+          "cap": "Bid-night bracket hunt answered with the submittal-comment template",
+          "flag": "Wrong output"
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "Procore submittal batch (PDF + metadata)",
+          "Spec sections in Specpoint",
+          "Consultant routing table"
+        ],
+        "rules": [
+          "Every comment cites section and paragraph",
+          "22 / 23 / 26 go to Pemberton unless stated",
+          "Review period runs from complete receipt, not batch upload",
+          "Comment, never a rewrite or design direction"
+        ],
+        "outputs": [
+          "Status per item (Approved, Approved as noted, Revise and resubmit, N/A)",
+          "Numbered comments ready for Procore / Bluebeam",
+          "Routing notes to Sturgis or Pemberton",
+          "Turnaround log by received date"
+        ],
+        "steps": [
+          "Batch intake from a Procore export",
+          "Section lookup against the project manual",
+          "Comment generator with house rules",
+          "Turnaround metrics for Elena's page"
+        ],
+        "effort": "M"
+      },
+      "metrics": {
+        "sessions": 9,
+        "tokens": 23292,
+        "minutes": 871,
+        "scope": "sessions"
+      }
+    },
+    {
+      "id": "one-pager",
+      "name": "Elena one-pager composer",
+      "kind": "Template",
+      "who": [
+        "Priya",
+        "Marcus",
+        "Dana",
+        "Tomás"
+      ],
+      "line": "One page per discipline in Elena's format, fed by each tool's numbers, with the confidence caveat built in.",
+      "signals": [
+        "cadence",
+        "shape",
+        "rule"
+      ],
+      "cost": "All four wrote one on 9 Sep; Marcus writes one every close",
+      "repeats": [
+        [
+          "Elena page",
+          "every close + 4 on 9 Sep"
+        ],
+        [
+          "Tiny scorecard / 4-row table",
+          "in 3 of the 4 quarterly pages"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "fin-003",
+          "date": "2026-03-27",
+          "title": "march wip rag and elena page",
+          "persona": "Marcus",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "cd-009",
+          "date": "2026-05-01",
+          "title": "diff this week against last week and call out stale six",
+          "persona": "Priya",
+          "model": "GPT-5.4",
+          "project": "Bayline"
+        },
+        {
+          "id": "fin-005",
+          "date": "2026-04-24",
+          "title": "april close same pack different numbers",
+          "persona": "Marcus",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-008",
+          "date": "2026-05-29",
+          "title": "may close arithmetic fight",
+          "persona": "Marcus",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-018",
+          "date": "2026-09-09",
+          "title": "principals quarterly review prep",
+          "persona": "Marcus",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "cd-019",
+          "date": "2026-09-09",
+          "title": "one pager for elena coordination health across projects",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Multiple"
+        },
+        {
+          "id": "ven-019",
+          "date": "2026-09-09",
+          "title": "elena one pager third party risk posture",
+          "persona": "Dana",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "spec-019",
+          "date": "2026-09-09",
+          "title": "one pager for elena on turnaround",
+          "persona": "Tomás",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "cd-019",
+          "n": 4,
+          "role": "assistant",
+          "speaker": "Claude Opus 4.5",
+          "at": "2026-09-09T06:59:24-07:00",
+          "title": "one pager for elena coordination health across projects",
+          "text": "# Coordination health — 9 Sep 2026\n\n**Overall: Yellow.** The coordination process is working, but it is heavily dependent on manual triage and uneven consultant model quality. The biggest concern is not the raw clash count; it is whether Priority 1 items are being closed quickly enough.\n\n**Bayline is the main watch item.** This week’s Navisworks run produced 1,326 raw rows after suppression, which HRA reduced to 14 grouped coordination issues. Five are Priority 1, and three have been active for more than eight weeks. Kirsch improved after cleaning up sprinkler drop modeling, but Pemberton remains the main source of stale duct/plumbing conflicts. The ask is PM support for dated commitments from Pemberton rather than another cycle of the same issues.\n\n**Mercer is stabilizing as it moves through CA.** Current coordination volume is lower: 412 raw model/shop conflicts reduced to 9 grouped issues, with 2 Priority 1 items. The work is now less about design clash detection and more about routing items correctly between Procore Coordination Issues, RFIs, and shop drawing comments.\n\n**Kestrel is early and high-risk.** The initial coordinate-system problem has been corrected, but the first usable run still produced 2,980 raw rows, 22 grouped issues, and 8 Priority 1 items. The risk is dense lab systems—lab gas, exhaust, vibration isolation—combined with a team that is still learning the model delivery rules.\n\nTiny scorecard:\n\n| Project | Health | Watch item |\n|---|---|---|\n| Bayline | Yellow/Red | 3 stale P1 items over 8 weeks |\n| Mercer | Green/Yellow | CA routing discipline |\n| Kestrel | Yellow/Red | Lab systems density + model maturity |\n\n**Recommended ask:** Jenna half-time for 8–10 weeks to make the reporting standards repeatable: upload tracking, first-pass model QA, viewpoint cleanup, and tracker updates.",
+          "cap": "Coordination health, 9 Sep",
+          "flag": null
+        },
+        {
+          "sid": "ven-019",
+          "n": 6,
+          "role": "assistant",
+          "speaker": "Claude Sonnet 4.5",
+          "at": "2026-09-09T07:40:06-07:00",
+          "title": "elena one pager third party risk posture",
+          "text": "| Area | Current status | Next action |\n|---|---|---|\n| Vendor count | 68 confirmed active; 6 pending duplicate/status decisions | Resolve pending records and lock vendor IDs |\n| Tier 1 risk | 29 vendors touch project/client data; evidence gaps remain | Close SOC/ISO/DPA/insurance/AI/non-US gates |\n| Renewals | 12 renew in next 90 days; 5 need owners | Assign owners and notice deadlines |\n| Operating rhythm | Register exists but review cadence is new | Monthly Ops/IT/Legal review |",
+          "cap": "Third-party risk: the four-row table Elena allows",
+          "flag": null
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "Numbers from the clash, close, vendor and submittal tools",
+          "Discipline owner's notes"
+        ],
+        "rules": [
+          "One page, printable, ≤170 words of narrative",
+          "No spreadsheets; one tiny scorecard at most",
+          "Lead with the answer, then the ask",
+          "State data confidence without sounding fake",
+          "Don't open with Red overall"
+        ],
+        "outputs": [
+          "Discipline page in a shared layout",
+          "\"What would make this green\" answers by project",
+          "Principals' ask, stated plainly"
+        ],
+        "steps": [
+          "Shared page template in Modul",
+          "Slots each tool fills automatically",
+          "Word-count and format checks"
+        ],
+        "effort": "S"
+      },
+      "metrics": {
+        "sessions": 8,
+        "tokens": 22602,
+        "minutes": 291,
+        "scope": "sessions"
+      }
+    },
+    {
+      "id": "firm-context",
+      "name": "Firm context profile",
+      "kind": "Foundation",
+      "who": [
+        "Priya",
+        "Marcus",
+        "Dana",
+        "Tomás"
+      ],
+      "line": "Store each role's context and rules once so no session starts with a 90-word paste.",
+      "signals": [
+        "prime",
+        "rule"
+      ],
+      "cost": "67 of 80 sessions open with a paste; about 6,400 words retyped",
+      "repeats": [
+        [
+          "Opening context paste",
+          "Priya 18 · Marcus 15 · Dana 14 · Tomás 20 of 20"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "cd-001",
+          "date": "2026-03-02",
+          "title": "bayline clash matrix tolerances before first friday run",
+          "persona": "Priya",
+          "model": "GPT-5.4",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-002",
+          "date": "2026-03-09",
+          "title": "monday bayline coordination agenda from raw notes",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-003",
+          "date": "2026-03-20",
+          "title": "first bayline html export into real issues",
+          "persona": "Priya",
+          "model": "Gemini 3 Pro",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-004",
+          "date": "2026-03-27",
+          "title": "the assistant keeps assigning structural the move",
+          "persona": "Priya",
+          "model": "Claude Sonnet 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-005",
+          "date": "2026-04-03",
+          "title": "bayline weekly report before permit submission",
+          "persona": "Priya",
+          "model": "GPT-5.4",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-006",
+          "date": "2026-04-10",
+          "title": "python parser for navisworks xml grouping",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-008",
+          "date": "2026-04-24",
+          "title": "same bayline friday triage but fewer rows",
+          "persona": "Priya",
+          "model": "Claude Sonnet 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-009",
+          "date": "2026-05-01",
+          "title": "diff this week against last week and call out stale six",
+          "persona": "Priya",
+          "model": "GPT-5.4",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-010",
+          "date": "2026-05-15",
+          "title": "dynamo idea for tagging plenum priority",
+          "persona": "Priya",
+          "model": "Gemini 3 Pro",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-011",
+          "date": "2026-05-29",
+          "title": "mercer bid set coordination report",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "cd-012",
+          "date": "2026-06-05",
+          "title": "self clashes and duplicate duct mess",
+          "persona": "Priya",
+          "model": "Gemini 3 Pro",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-013",
+          "date": "2026-06-12",
+          "title": "abandoned bcf export question before lunch",
+          "persona": "Priya",
+          "model": "Claude Sonnet 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-014",
+          "date": "2026-07-07",
+          "title": "kestrel everything clashes coordinate disaster",
+          "persona": "Priya",
+          "model": "GPT-5.4",
+          "project": "Kestrel"
+        },
+        {
+          "id": "cd-015",
+          "date": "2026-07-17",
+          "title": "lost the xml grouping script and need it again",
+          "persona": "Priya",
+          "model": "Gemini 3 Pro",
+          "project": "Bayline"
+        },
+        {
+          "id": "cd-016",
+          "date": "2026-07-24",
+          "title": "kestrel first usable clash report lab gas exhaust vibration",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Kestrel"
+        },
+        {
+          "id": "cd-017",
+          "date": "2026-08-14",
+          "title": "mercer ca shop drawing coordination shift",
+          "persona": "Priya",
+          "model": "Copilot (M365)",
+          "project": "Mercer"
+        },
+        {
+          "id": "cd-019",
+          "date": "2026-09-09",
+          "title": "one pager for elena coordination health across projects",
+          "persona": "Priya",
+          "model": "Claude Opus 4.5",
+          "project": "Multiple"
+        },
+        {
+          "id": "cd-020",
+          "date": "2026-09-18",
+          "title": "friday triage again bayline kestrel mercer mixed",
+          "persona": "Priya",
+          "model": "Claude Sonnet 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "fin-001",
+          "date": "2026-03-02",
+          "title": "13-week cash flow skeleton before march close",
+          "persona": "Marcus",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-003",
+          "date": "2026-03-27",
+          "title": "march wip rag and elena page",
+          "persona": "Marcus",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-004",
+          "date": "2026-04-07",
+          "title": "powerquery idea abandoned",
+          "persona": "Marcus",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-005",
+          "date": "2026-04-24",
+          "title": "april close same pack different numbers",
+          "persona": "Marcus",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-006",
+          "date": "2026-05-01",
+          "title": "q3 forecast scramble on may first",
+          "persona": "Marcus",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-008",
+          "date": "2026-05-29",
+          "title": "may close arithmetic fight",
+          "persona": "Marcus",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-009",
+          "date": "2026-06-12",
+          "title": "northgate gmp fee erosion explanation",
+          "persona": "Marcus",
+          "model": "Claude Opus 4.5",
+          "project": "Northgate"
+        },
+        {
+          "id": "fin-010",
+          "date": "2026-06-26",
+          "title": "june close northgate over ninety",
+          "persona": "Marcus",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-011",
+          "date": "2026-07-02",
+          "title": "python reshape vantagepoint csv",
+          "persona": "Marcus",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-013",
+          "date": "2026-07-25",
+          "title": "lost the python script july close",
+          "persona": "Marcus",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-014",
+          "date": "2026-08-03",
+          "title": "harbor point does not sign cash scenario",
+          "persona": "Marcus",
+          "model": "GPT-5.4",
+          "project": "Harbor Point"
+        },
+        {
+          "id": "fin-016",
+          "date": "2026-08-28",
+          "title": "august close same drill",
+          "persona": "Marcus",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-018",
+          "date": "2026-09-09",
+          "title": "principals quarterly review prep",
+          "persona": "Marcus",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-019",
+          "date": "2026-09-15",
+          "title": "year-end forecast after principals",
+          "persona": "Marcus",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "fin-020",
+          "date": "2026-09-18",
+          "title": "september close prep same template",
+          "persona": "Marcus",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-002",
+          "date": "2026-03-06",
+          "title": "pixelForge rendering plugin before mercer 75",
+          "persona": "Dana",
+          "model": "Claude Sonnet 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-003",
+          "date": "2026-03-18",
+          "title": "modelmosaic cloud coordination review grind",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Bayline"
+        },
+        {
+          "id": "ven-004",
+          "date": "2026-03-24",
+          "title": "arborspan structural engineer due diligence",
+          "persona": "Dana",
+          "model": "Claude Opus 4.5",
+          "project": "Harbor Point"
+        },
+        {
+          "id": "ven-005",
+          "date": "2026-04-02",
+          "title": "minuteLynx ai notetaker already in use",
+          "persona": "Dana",
+          "model": "Copilot (M365)",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-007",
+          "date": "2026-04-16",
+          "title": "docuHarbor vault migration review",
+          "persona": "Dana",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-009",
+          "date": "2026-04-30",
+          "title": "gridpin revit add-in tiering argument",
+          "persona": "Dana",
+          "model": "Gemini 3 Pro",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-010",
+          "date": "2026-05-07",
+          "title": "lumaQuay offshore visualization contract grind",
+          "persona": "Dana",
+          "model": "Claude Opus 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-011",
+          "date": "2026-05-15",
+          "title": "peopleNest hr onboarding tier 2 review",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-012",
+          "date": "2026-05-22",
+          "title": "signetRail e-sign contract review",
+          "persona": "Dana",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-013",
+          "date": "2026-06-05",
+          "title": "northgate furniture dealer due diligence",
+          "persona": "Dana",
+          "model": "Copilot (M365)",
+          "project": "Northgate"
+        },
+        {
+          "id": "ven-014",
+          "date": "2026-06-11",
+          "title": "draftVale model cleanup outsourcing rabbit hole",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-016",
+          "date": "2026-06-26",
+          "title": "echoGrid av integrator northgate",
+          "persona": "Dana",
+          "model": "Gemini 3 Pro",
+          "project": "Northgate"
+        },
+        {
+          "id": "ven-017",
+          "date": "2026-07-02",
+          "title": "blueAnvil metal fabricator mercer",
+          "persona": "Dana",
+          "model": "Copilot (M365)",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-020",
+          "date": "2026-09-18",
+          "title": "glassKite facade consultant six week stall",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-001",
+          "date": "2026-03-02",
+          "title": "mercer air barrier section before 75 cd",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-002",
+          "date": "2026-03-09",
+          "title": "woodwork section trim down",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-003",
+          "date": "2026-03-18",
+          "title": "late catch on made-up astm in gypsum",
+          "persona": "Tomás",
+          "model": "Gemini 3 Pro",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-004",
+          "date": "2026-04-06",
+          "title": "bayline storefront permit cleanup",
+          "persona": "Tomás",
+          "model": "Claude Opus 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "spec-005",
+          "date": "2026-04-16",
+          "title": "who reviews division 23 again",
+          "persona": "Tomás",
+          "model": "Copilot (M365)",
+          "project": "Bayline"
+        },
+        {
+          "id": "spec-006",
+          "date": "2026-04-28",
+          "title": "submittal register from the manual take two",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-007",
+          "date": "2026-05-08",
+          "title": "diff two versions of metal panel section",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-008",
+          "date": "2026-05-27",
+          "title": "superseded standard before bid set",
+          "persona": "Tomás",
+          "model": "Claude Opus 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-009",
+          "date": "2026-05-29",
+          "title": "bracket hunt night before bid",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-010",
+          "date": "2026-06-12",
+          "title": "northgate countertops public client",
+          "persona": "Tomás",
+          "model": "Gemini 3 Pro",
+          "project": "Northgate"
+        },
+        {
+          "id": "spec-011",
+          "date": "2026-06-26",
+          "title": "lost the register export format",
+          "persona": "Tomás",
+          "model": "Copilot (M365)",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-012",
+          "date": "2026-07-10",
+          "title": "kestrel friday dump forty one submittals",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Kestrel"
+        },
+        {
+          "id": "spec-013",
+          "date": "2026-07-17",
+          "title": "kestrel ceiling tile submittal",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Kestrel"
+        },
+        {
+          "id": "spec-014",
+          "date": "2026-07-24",
+          "title": "air barrier versus window instructions",
+          "persona": "Tomás",
+          "model": "Claude Opus 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-015",
+          "date": "2026-08-05",
+          "title": "cheaper metal panel substitution",
+          "persona": "Tomás",
+          "model": "Gemini 3 Pro",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-016",
+          "date": "2026-08-14",
+          "title": "mercer curtain wall delegated design",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-017",
+          "date": "2026-08-21",
+          "title": "abandoned hardware routing note",
+          "persona": "Tomás",
+          "model": "Copilot (M365)",
+          "project": "Kestrel"
+        },
+        {
+          "id": "spec-018",
+          "date": "2026-08-28",
+          "title": "door hardware resubmittal still wrong",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Kestrel"
+        },
+        {
+          "id": "spec-019",
+          "date": "2026-09-09",
+          "title": "one pager for elena on turnaround",
+          "persona": "Tomás",
+          "model": "Claude Opus 4.5",
+          "project": "Firmwide"
+        },
+        {
+          "id": "spec-020",
+          "date": "2026-09-18",
+          "title": "estimating submittal logging hours",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "cd-001",
+          "n": 1,
+          "role": "user",
+          "speaker": "Priya",
+          "at": "2026-03-02T08:42:00-08:00",
+          "title": "bayline clash matrix tolerances before first friday run",
+          "text": "I'm Priya, BIM coordinator at Halden & Reyes Architects in Seattle. I own Navisworks coordination, mostly Bayline right now. Our rules: report by issue, not by individual clash; issue names are <PROJECT>-<LEVEL>-<DISCIPLINE PAIR>-<NN>; keep reports under 2,000 clashes; ignore duct insulation clashes under 1/2 inch; structural is never the one that moves; anything in a ceiling plenum under 10'-0\" AFF is Priority 1; corridors need 8\" MEP clearance for maintenance. Please don't turn this into a theoretical BIM lecture. I need something I can paste into Bluebeam/Procore/Teams.",
+          "cap": "Priya's paste, in 18 of 20 sessions",
+          "flag": null
+        },
+        {
+          "sid": "fin-001",
+          "n": 1,
+          "role": "user",
+          "speaker": "Marcus",
+          "at": "2026-03-02T08:43:00-08:00",
+          "title": "13-week cash flow skeleton before march close",
+          "text": "I'm the project financial analyst at Halden & Reyes Architects, a 140-person architecture practice. This is project fee/labour economics, not construction cost estimating. I pull WIP from Deltek Vantagepoint, reconcile late timesheets, calculate percent complete by SD/DD/CD/BN/CA phase, prep invoices and AR notes, rebuild the 13-week cash flow, and produce Wes's monthly review pack plus Elena's one-page version. Rules: net revenue = gross revenue minus consultants and reimbursables; never report a multiplier on gross; reports are cut at Friday week-ending, not calendar month-end; dollars in $000, no cents; fee burn is red >105%, amber 95-105%, green below 95%.",
+          "cap": "Marcus's paste, in 15 of 20",
+          "flag": null
+        },
+        {
+          "sid": "ven-002",
+          "n": 1,
+          "role": "user",
+          "speaker": "Dana",
+          "at": "2026-03-06T16:12:00-08:00",
+          "title": "pixelForge rendering plugin before mercer 75",
+          "text": "I'm Dana Whitfield, operations and IT procurement lead at Halden & Reyes Architects in Seattle. Please assume no memory from prior chats. HRA is 140 people, Revit-based, SharePoint/Teams, Bluebeam, Deltek Vantagepoint, Procore on Mercer and Bayline. Our vendor tiering is: Tier 1 = anything touching project models or client data; Tier 2 = firm-internal data only; Tier 3 = marketing/no-data. Tier 1 requires SOC 2 Type II or ISO 27001, a DPA, and $2M cyber with HRA named additional insured. Anything AI needs contractual no-training-on-our-data, and anything storing data outside the US needs Wes Okonkwo's sign-off.",
+          "cap": "Dana's paste, in 14 of 20",
+          "flag": null
+        },
+        {
+          "sid": "spec-001",
+          "n": 1,
+          "role": "user",
+          "speaker": "Tomás",
+          "at": "2026-03-02T08:41:00-08:00",
+          "title": "mercer air barrier section before 75 cd",
+          "text": "I'm Tomás Ferreira, senior architect / firmwide specifier at Halden & Reyes Architects in Seattle. We use Deltek Specpoint with MasterSpec as the base, PageFormat, three-part SectionFormat only. Project is Mercer. Our house rules: don't use \"shall be\" in Part 2, use \"Provide\"; don't name a single manufacturer unless it says \"or comparable product by one of the following\"; review comments need spec section and paragraph numbers; 22/23/26 are Pemberton's sections unless I explicitly say otherwise. Seattle work is IBC 2021 with Washington amendments, Seattle Energy Code, ADA/ANSI A117.1, and LEED v4.1 language lives mostly in 01 81 13 plus the relevant Part 2 paragraphs.",
+          "cap": "Tomás's paste, in 20 of 20",
+          "flag": null
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "The four pastes as they stand in September",
+          "Corrections users made mid-session"
+        ],
+        "rules": [
+          "One profile per role, owned by that person",
+          "Rules are testable statements, not prose",
+          "Every tool above reads from it"
+        ],
+        "outputs": [
+          "Role profiles: Priya, Marcus, Dana, Tomás",
+          "Shared firm facts (projects, consultants, milestones)"
+        ],
+        "steps": [
+          "Extract rules from the pastes and the corrections",
+          "Store as a skill or project memory",
+          "Wire into each tool"
+        ],
+        "effort": "S"
+      },
+      "metrics": {
+        "sessions": 67,
+        "tokens": 10665,
+        "minutes": null,
+        "scope": "paste"
+      }
+    },
+    {
+      "id": "spec-qa",
+      "name": "Spec section QA",
+      "kind": "Tool",
+      "who": [
+        "Tomás"
+      ],
+      "line": "Lint a Specpoint section for house rules, empty brackets, broken cross-references and unverified standards before issue.",
+      "signals": [
+        "prime",
+        "rule",
+        "drift",
+        "script"
+      ],
+      "cost": "Night-before-bid hunts (spec-008, spec-009)",
+      "repeats": [
+        [
+          "Section cleanup pass",
+          "7 sessions before 75% CD and bid set"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "spec-001",
+          "date": "2026-03-02",
+          "title": "mercer air barrier section before 75 cd",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-002",
+          "date": "2026-03-09",
+          "title": "woodwork section trim down",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-003",
+          "date": "2026-03-18",
+          "title": "late catch on made-up astm in gypsum",
+          "persona": "Tomás",
+          "model": "Gemini 3 Pro",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-004",
+          "date": "2026-04-06",
+          "title": "bayline storefront permit cleanup",
+          "persona": "Tomás",
+          "model": "Claude Opus 4.5",
+          "project": "Bayline"
+        },
+        {
+          "id": "spec-007",
+          "date": "2026-05-08",
+          "title": "diff two versions of metal panel section",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-008",
+          "date": "2026-05-27",
+          "title": "superseded standard before bid set",
+          "persona": "Tomás",
+          "model": "Claude Opus 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-009",
+          "date": "2026-05-29",
+          "title": "bracket hunt night before bid",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "spec-003",
+          "n": 7,
+          "role": "user",
+          "speaker": "Tomás",
+          "at": "2026-03-18T18:38:24-08:00",
+          "title": "late catch on made-up astm in gypsum",
+          "text": "Replacement paragraph:\n\n2.2 GYPSUM BOARD PRODUCTS\nA. Provide gypsum board products of types indicated, complying with verified referenced standards listed in this Section and requirements of fire-resistance-rated assemblies indicated.\nB. Provide abuse-resistant or impact-resistant gypsum board where indicated on Drawings, with performance criteria verified against current manufacturer data and current MasterSpec references before issue.\n\nI need to correct one thing before you paste this: I cannot verify standards from the chat context alone. Where the source section names ASTM, ANSI, UL, NFPA, AAMA, SDI, BHMA, or ICC-ES criteria, the safe output is to preserve the cited reference and flag it for verification against the current MasterSpec/Specpoint library. I should not invent an ASTM number because it sounds adjacent.",
+          "cap": "A made-up ASTM caught late",
+          "flag": "Hallucination"
+        },
+        {
+          "sid": "spec-001",
+          "n": 4,
+          "role": "assistant",
+          "speaker": "GPT-5.4",
+          "at": "2026-03-02T08:45:14-08:00",
+          "title": "mercer air barrier section before 75 cd",
+          "text": "You're right. Here is the corrected SectionFormat-style language for 07 27 26, keeping HRA voice and avoiding substituted legal text.\n\nPART 1 GENERAL\n1.1 SUMMARY\nA. Section includes work indicated for this section and related accessories required for a complete installation.\n\n1.2 RELATED REQUIREMENTS\nA. Section 01 25 00 \"Substitution Procedures\" for product substitution requirements.\nB. Section 01 33 00 \"Submittal Procedures\" for administrative requirements for shop drawings, product data, samples, and delegated design submittals.\nC. Section 01 81 13 \"Sustainable Design Requirements\" for LEED v4.1 documentation.\n\nPART 2 PRODUCTS\n2.1 MANUFACTURERS\nA. Basis-of-Design Product: Provide indicated basis-of-design product or comparable product by one of the following manufacturers, subject to compliance with requirements.\nB. Acceptable manufacturers: keep only manufacturers confirmed by the project team.\n\nPART 3 EXECUTION\n3.1 EXAMINATION\nA. Examine substrates, adjoining construction, and conditions affecting performance of the Work.\n\nI will keep future comments tied to paragraph numbers rather than rewriting the whole section unless you ask for a clean replacement.",
+          "cap": "Air barrier section rewritten in SectionFormat",
+          "flag": null
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "Section export from Specpoint",
+          "Previous issued version for diff"
+        ],
+        "rules": [
+          "\"Provide\", never \"shall be\" in Part 2",
+          "No single manufacturer without \"or comparable product\"",
+          "Three-part SectionFormat only",
+          "Standards must exist in current MasterSpec; never invented"
+        ],
+        "outputs": [
+          "Findings list by paragraph",
+          "Empty [ ] choices and {cross-references}",
+          "Version diff",
+          "Superseded standard flags"
+        ],
+        "steps": [
+          "Regex checks for brackets, tense, manufacturers",
+          "Standards list from MasterSpec, checked not generated",
+          "Diff between issued versions"
+        ],
+        "effort": "S"
+      },
+      "metrics": {
+        "sessions": 7,
+        "tokens": 18589,
+        "minutes": 654,
+        "scope": "sessions"
+      }
+    },
+    {
+      "id": "submittal-register",
+      "name": "Submittal register export",
+      "kind": "Tool",
+      "who": [
+        "Tomás"
+      ],
+      "line": "Build the register from the project manual in the exact tab-separated format Procore accepts.",
+      "signals": [
+        "prime",
+        "shape",
+        "script",
+        "paste"
+      ],
+      "cost": "Format lost and rebuilt (spec-011)",
+      "repeats": [
+        [
+          "Register rows",
+          "9× in 8 sessions"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "spec-001",
+          "date": "2026-03-02",
+          "title": "mercer air barrier section before 75 cd",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-002",
+          "date": "2026-03-09",
+          "title": "woodwork section trim down",
+          "persona": "Tomás",
+          "model": "Claude Sonnet 4.5",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-006",
+          "date": "2026-04-28",
+          "title": "submittal register from the manual take two",
+          "persona": "Tomás",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "spec-011",
+          "date": "2026-06-26",
+          "title": "lost the register export format",
+          "persona": "Tomás",
+          "model": "Copilot (M365)",
+          "project": "Mercer"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "spec-011",
+          "n": 4,
+          "role": "assistant",
+          "speaker": "Copilot (M365)",
+          "at": "2026-06-26T09:08:14-07:00",
+          "title": "lost the register export format",
+          "text": "Section\tTitle\tParagraph\tSubmittal\tType\tBall-in-Court\tDue Trigger\tNotes\n07 52 00\tModified Bituminous Membrane Roofing\t1.3.A\tProduct Data\tAction\tHRA\tBefore procurement\tInclude membrane accessories and LEED data\n07 52 00\tModified Bituminous Membrane Roofing\t1.6\tSpecial Warranty\tCloseout\tHRA\tCloseout\t20-year roofing membrane warranty\n08 44 13\tGlazed Aluminum Curtain Walls\t1.3.B\tShop Drawings\tAction\tHRA\tBefore fabrication\tDelegated design and interfaces coordinate with Sturgis\n08 44 13\tGlazed Aluminum Curtain Walls\t1.4.A\tPE-stamped calculations\tInformational\tSturgis\tBefore fabrication\tStructural review of delegated design criteria\n09 65 19\tResilient Tile Flooring\t1.3.A\tProduct Data\tAction\tHRA\tBefore procurement\tInclude low-emitting documentation\n09 65 19\tResilient Tile Flooring\t1.3.C\tSamples\tAction\tHRA\tBefore ordering\tColors and patterns per finish schedule",
+          "cap": "Tab-separated register after commas broke the notes",
+          "flag": null
+        },
+        {
+          "sid": "spec-001",
+          "n": 8,
+          "role": "assistant",
+          "speaker": "GPT-5.4",
+          "at": "2026-03-02T08:58:38-08:00",
+          "title": "mercer air barrier section before 75 cd",
+          "text": "| Section | Paragraph | Submittal | Type | Ball in Court | Due Trigger | Notes |\n|---|---:|---|---|---|---|---|\n| 07 27 26 | 1.3.A | Product Data | Action | HRA | Before procurement | Include project-specific data and LEED documentation where applicable. |\n| 07 27 26 | 1.3.B | Shop Drawings | Action | HRA | Before fabrication | Show dimensions, attachments, interfaces, and coordination with adjacent assemblies. |\n| 07 27 26 | 1.3.C | Samples | Action | HRA | Before ordering exposed materials | Initial selection and verification samples if exposed to view. |\n| 07 27 26 | 1.4.A | Product certificates | Informational | HRA | Before installation | Confirm compliance with specified performance criteria. |\n| 07 27 26 | 1.4.B | Evaluation reports | Informational | HRA | Before installation | Only if required for code compliance. |\n| 07 27 26 | 1.6 | Warranty | Closeout | HRA | Closeout | Coordinate duration with section-specific requirement; otherwise 2 years. |",
+          "cap": "The same register as a markdown table, March",
+          "flag": null
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "Project manual sections (Part 1 submittal paragraphs)"
+        ],
+        "rules": [
+          "Tab-separated; notes contain commas",
+          "Ball-in-court: HRA, Sturgis, Pemberton, GC, Consultant only",
+          "Action / Informational / Closeout types"
+        ],
+        "outputs": [
+          "Register TSV for Excel and Procore",
+          "Due triggers per item"
+        ],
+        "steps": [
+          "Parse Part 1 submittal paragraphs",
+          "Fixed column schema saved in the repo",
+          "Export button, no chat"
+        ],
+        "effort": "S"
+      },
+      "metrics": {
+        "sessions": 4,
+        "tokens": 10278,
+        "minutes": 372,
+        "scope": "sessions"
+      }
+    },
+    {
+      "id": "vendor-register",
+      "name": "Vendor register",
+      "kind": "Tool",
+      "who": [
+        "Dana"
+      ],
+      "line": "One deduplicated list of active vendors with tier, evidence gaps and renewal dates, so the count stops moving.",
+      "signals": [
+        "shape",
+        "paste",
+        "cadence"
+      ],
+      "cost": "Count moved between 68 and 74 before the board review",
+      "repeats": [
+        [
+          "Register table",
+          "rebuilt in 3 sessions"
+        ],
+        [
+          "Tracker line",
+          "end of most scorecard sessions"
+        ]
+      ],
+      "sessions": [
+        {
+          "id": "ven-001",
+          "date": "2026-03-02",
+          "title": "building the first vendor intake form",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-014",
+          "date": "2026-06-11",
+          "title": "draftVale model cleanup outsourcing rabbit hole",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Mercer"
+        },
+        {
+          "id": "ven-018",
+          "date": "2026-08-20",
+          "title": "annual vendor rereview register panic",
+          "persona": "Dana",
+          "model": "GPT-5.4",
+          "project": "Firmwide"
+        },
+        {
+          "id": "ven-019",
+          "date": "2026-09-09",
+          "title": "elena one pager third party risk posture",
+          "persona": "Dana",
+          "model": "Claude Sonnet 4.5",
+          "project": "Firmwide"
+        }
+      ],
+      "snaps": [
+        {
+          "sid": "ven-019",
+          "n": 6,
+          "role": "assistant",
+          "speaker": "Claude Sonnet 4.5",
+          "at": "2026-09-09T07:40:06-07:00",
+          "title": "elena one pager third party risk posture",
+          "text": "| Area | Current status | Next action |\n|---|---|---|\n| Vendor count | 68 confirmed active; 6 pending duplicate/status decisions | Resolve pending records and lock vendor IDs |\n| Tier 1 risk | 29 vendors touch project/client data; evidence gaps remain | Close SOC/ISO/DPA/insurance/AI/non-US gates |\n| Renewals | 12 renew in next 90 days; 5 need owners | Assign owners and notice deadlines |\n| Operating rhythm | Register exists but review cadence is new | Monthly Ops/IT/Legal review |",
+          "cap": "Posture table for the principals",
+          "flag": null
+        },
+        {
+          "sid": "ven-018",
+          "n": 3,
+          "role": "user",
+          "speaker": "Dana",
+          "at": "2026-08-20T09:06:22-07:00",
+          "title": "annual vendor rereview register panic",
+          "text": "Here's the ugly counts by source, duplicates everywhere:\nAP export active 2025-26: 112 names. IT subscriptions: 31. Procore/SharePoint project vendor folders: 46. Consultant master list: 27. Insurance COI folder: 58. After a first manual pass I got 68 active vendors, then noticed DocuHarbor/Docu Harbor and SignetRail/Signet Rail duplicates and got 74? That's backwards. Help me reason about counting.",
+          "cap": "Five sources, duplicates everywhere",
+          "flag": "Count unclear"
+        }
+      ],
+      "plan": {
+        "inputs": [
+          "AP export, IT subscriptions, project vendor folders, consultant list, COI folder"
+        ],
+        "rules": [
+          "Active vendor = paid or under contract in the last 12 months",
+          "Tier from the scorecard tool",
+          "Tier 1 with any missing evidence = high risk"
+        ],
+        "outputs": [
+          "Deduplicated register with vendor IDs",
+          "Open Tier 1 gates",
+          "Renewals in the next 90 days with owners"
+        ],
+        "steps": [
+          "Name matching across sources",
+          "Monthly review view",
+          "Feeds the one-pager"
+        ],
+        "effort": "M"
+      },
+      "metrics": {
+        "sessions": 4,
+        "tokens": 9877,
+        "minutes": 147,
+        "scope": "sessions"
+      }
+    }
+  ],
+  "corpus": {
+    "sessions": 80,
+    "prime": 67,
+    "start": "2026-03-02",
+    "end": "2026-09-18"
+  }
+}

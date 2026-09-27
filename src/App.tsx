@@ -1,11 +1,18 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   sources,
   patterns as preparedPatterns,
   corpusStats,
   getHistoryJson,
+  ledger,
+  corpusWindow,
+  metricScores,
   type Pattern,
+  type LedgerRow,
+  type Snapshot,
+  type MetricKey,
 } from "./data";
+import { Markdown } from "./markdown";
 import {
   extendApp,
   routeRequest,
@@ -36,6 +43,7 @@ type View = "history" | "patterns" | "apps" | "request";
 type ModalKind =
   | { kind: "json"; sourceId: string }
   | { kind: "brief"; pattern: Pattern }
+  | { kind: "snap"; snap: Snapshot }
   | { kind: "reset" }
   | null;
 const saved = loadSaved();
@@ -65,6 +73,242 @@ function Arrow() {
     <span aria-hidden="true" className="arrow">
       →
     </span>
+  );
+}
+function BrandMark() {
+  return (
+    <svg
+      className="brand-mark"
+      viewBox="0 0 788 511"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        fill="var(--blue)"
+        d="M0 0 491 0 607 329 607 509 498 509 358.7 107 0 107Z"
+      />
+      <path fill="var(--yellow)" d="M0 145h332l36.7 106H0z" />
+      <path fill="var(--red)" d="M0 289h381.9l36.4 105H0z" />
+      <path fill="var(--blue)" d="M0 425h429l29.1 84H0z" />
+      <path fill="var(--ink)" d="M638 319h150v164H638z" />
+    </svg>
+  );
+}
+function Chevron() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="square"
+      aria-hidden="true"
+    >
+      <path d="M3.5 6l4.5 4.5L12.5 6" />
+    </svg>
+  );
+}
+const METERS: {
+  key: MetricKey;
+  label: string;
+  tip: string;
+  format: (value: number) => ReactNode;
+}[] = [
+  {
+    key: "sessions",
+    label: "Sessions",
+    tip: "Sessions where this job came up",
+    format: (value) => value,
+  },
+  {
+    key: "tokens",
+    label: "Tokens",
+    tip: "Transcript tokens across those sessions (characters / 4)",
+    format: (value) =>
+      value >= 1000 ? (
+        <>
+          {(value / 1000).toFixed(1)}
+          <small>k</small>
+        </>
+      ) : (
+        value
+      ),
+  },
+  {
+    key: "minutes",
+    label: "Chat time",
+    tip: "Elapsed time from first to last turn, summed",
+    format: (value) =>
+      value >= 60 ? (
+        <>
+          {(value / 60).toFixed(1)}
+          <small>h</small>
+        </>
+      ) : (
+        <>
+          {value}
+          <small>m</small>
+        </>
+      ),
+  },
+];
+function Metrics({ row }: { row: LedgerRow }) {
+  return (
+    <div className="mets">
+      {METERS.map((meter) => {
+        const score = metricScores[row.id][meter.key];
+        return (
+          <div
+            className="met"
+            key={meter.key}
+            title={`${meter.tip}, score ${score} of 5`}
+          >
+            <div className="k">{meter.label}</div>
+            <div className="v">{meter.format(row.metrics[meter.key])}</div>
+            <div
+              className="meter"
+              role="img"
+              aria-label={`Score ${score} of 5`}
+            >
+              {[1, 2, 3, 4, 5].map((step) => (
+                <i className={step <= score ? "on" : ""} key={step} />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const WINDOW_START = Date.parse(corpusWindow.start);
+const WINDOW_END = Date.parse(corpusWindow.end);
+const TICKS = (() => {
+  const ticks: string[] = [];
+  const cursor = new Date(WINDOW_START);
+  cursor.setUTCDate(1);
+  while (cursor.getTime() <= WINDOW_END) {
+    ticks.push(MONTHS[cursor.getUTCMonth()][0]);
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+  }
+  return ticks;
+})();
+function Cadence({ row }: { row: LedgerRow }) {
+  const at = (date: string) =>
+    ((Date.parse(date) - WINDOW_START) / (WINDOW_END - WINDOW_START)) * 100;
+  return (
+    <div
+      className="cad"
+      role="img"
+      aria-label={`${row.briefs.length} sessions across the corpus window`}
+    >
+      <div className="cad-track" />
+      {row.briefs.map((brief) => (
+        <span
+          className="cad-dot"
+          key={brief.id}
+          style={{ left: `${at(brief.date).toFixed(2)}%` }}
+          title={`${brief.id} · ${brief.dateLabel} · ${brief.title}`}
+        />
+      ))}
+      <div className="cad-ticks" aria-hidden="true">
+        {TICKS.map((tick, index) => (
+          <span key={index}>{tick}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+function Shot({ snap, onOpen }: { snap: Snapshot; onOpen: () => void }) {
+  return (
+    <figure className={`shot ${snap.role === "user" ? "user" : ""}`}>
+      <div className="shot-frame">
+        <div className="shot-bar">
+          <b>{snap.speaker}</b>
+          <span>
+            {snap.sessionId} · {snap.atLabel}
+          </span>
+        </div>
+        <div className="shot-body md" aria-hidden="true">
+          <Markdown text={snap.text.slice(0, 1400)} />
+        </div>
+        {snap.flag && <span className="shot-flag">{snap.flag}</span>}
+        <button
+          className="shot-open"
+          onClick={onOpen}
+          aria-label={`Read the full turn: ${snap.caption}`}
+        />
+      </div>
+      <figcaption>{snap.caption}</figcaption>
+    </figure>
+  );
+}
+function PlanView({ row }: { row: LedgerRow }) {
+  return (
+    <div className="plan">
+      <div>
+        <h5 className="label">Inputs</h5>
+        <ul>
+          {row.plan.inputs.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h5 className="label">Outputs</h5>
+        <ul>
+          {row.plan.outputs.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h5 className="label">Rules it enforces</h5>
+        <ul>
+          {row.plan.rules.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h5 className="label">Build plan</h5>
+        <ol>
+          {row.plan.steps.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
+      </div>
+      <div className="full">
+        <h5 className="label">Cost they reported</h5>
+        <p style={{ margin: 0 }}>{row.cost}</p>
+      </div>
+      <div className="full">
+        <h5 className="label">What repeats</h5>
+        <div className="repeats">
+          {row.repeats.map(([shape, count]) => (
+            <div key={shape}>
+              <span>{shape}</span>
+              <span>{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 function Modal({
@@ -111,6 +355,7 @@ export default function App() {
   const [selectedSources, setSelectedSources] = useState(
     sources.map((source) => source.id),
   );
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedPatternId, setSelectedPatternId] = useState("clash");
   const [analyzed, setAnalyzed] = useState(false);
   const [patterns, setPatterns] = useState<Pattern[]>([]);
@@ -165,14 +410,26 @@ export default function App() {
     visiblePatterns.find((pattern) => pattern.id === selectedPatternId) ||
     visiblePatterns[0];
   const kind: AppKind =
-    view === "patterns"
+    view === "patterns" && analysisMode === "qm"
       ? (patternAppKind(activePattern) ?? activeKind)
       : activeKind;
   const definition = appCatalog[kind];
   const app = apps[kind];
   const registryState = registry[kind].state;
-  const registryError = registry[kind].error;
   const appEvents = events.filter((event) => event.appId === definition.appId);
+  // Prepared rows have curated metrics and snapshots. QM results keep their
+  // own verified evidence rather than borrowing prepared-row metrics.
+  const visibleLedger = visiblePatterns
+    .map((pattern) => ledger.find((row) => row.id === pattern.id))
+    .filter((row): row is LedgerRow => Boolean(row));
+  function toggleRow(id: string) {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
   const selectedVersion =
     app?.versions.find((version) => version.id === selectedVersionId) ||
     app?.versions.find((version) => version.id === app.currentVersionId);
@@ -382,7 +639,8 @@ export default function App() {
       return;
     }
     // Save before same-tab navigation so the return journey keeps the exact version.
-    if (!persist(targetApp, nextEvents)) {
+    const targetKind = targetApp.id === appCatalog.vendor.appId ? "vendor" : "clash";
+    if (!persist(targetApp, nextEvents, targetKind)) {
       setToast(
         "Could not save this version. Allow browser storage, then try opening the app again.",
       );
@@ -390,30 +648,37 @@ export default function App() {
     }
     location.assign(url);
   }
-  function openVersion(version = selectedVersion) {
-    if (!app || !version || registryState !== "ready") return;
+  function openVersion(
+    version = selectedVersion,
+    targetKind = kind,
+    pattern = activePattern,
+  ) {
+    const targetApp = apps[targetKind];
+    const targetDefinition = appCatalog[targetKind];
+    if (!targetApp || !version || registry[targetKind].state !== "ready") return;
+    setActiveKind(targetKind);
     setSelectedVersionId(version.id);
     const person =
       view === "patterns"
-        ? sources.find((source) => source.id === activePattern?.sourceId)
+        ? sources.find((source) => source.id === pattern?.sourceId)
             ?.name || "Teammate"
         : persona;
     const nextEvents = [
       ...events,
       {
         person,
-        appId: app.id,
+        appId: targetApp.id,
         request:
           view === "patterns"
-            ? definition.request
-            : request || `Open ${definition.name}.`,
+            ? targetDefinition.request
+            : request || `Open ${targetDefinition.name}.`,
         action: "REUSE" as const,
         versionId: version.id,
         at: new Date().toISOString(),
       },
     ].slice(-20);
     setEvents(nextEvents);
-    launch(app, version, nextEvents);
+    launch(targetApp, version, nextEvents);
   }
   function extendAndOpen() {
     if (!app || kind !== "clash" || registryState !== "ready") return;
@@ -448,7 +713,14 @@ export default function App() {
       ),
     );
   }
-  function RegistryMatch() {
+  function RegistryMatch({
+    targetKind = kind,
+    pattern = activePattern,
+  }: { targetKind?: AppKind; pattern?: Pattern } = {}) {
+    const app = apps[targetKind];
+    const definition = appCatalog[targetKind];
+    const registryState = registry[targetKind].state;
+    const registryError = registry[targetKind].error;
     return (
       <div className="registry-match" aria-live="polite">
         {registryState === "loading" || registryState === "idle" ? (
@@ -492,6 +764,8 @@ export default function App() {
                   app.versions.find(
                     (version) => version.id === app.currentVersionId,
                   ),
+                  targetKind,
+                  pattern,
                 )
               }
             >
@@ -560,11 +834,7 @@ export default function App() {
           onClick={() => navigate("history")}
           aria-label="Appstract home"
         >
-          <span className="brand-mark" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
+          <BrandMark />
           <span className="wordmark">appstract</span>
         </button>
         <nav aria-label="Main navigation">
@@ -697,7 +967,10 @@ export default function App() {
                       discoveryBusy ||
                       !qmConnection?.configured
                     }
-                    onClick={findPatterns}
+                    onClick={() => {
+                      setExpanded(new Set());
+                      findPatterns();
+                    }}
                   >
                     {discoveryBusy ? "Reading histories…" : "Find patterns"}{" "}
                     <Arrow />
@@ -800,7 +1073,7 @@ export default function App() {
                   )}
                 </div>
               )}
-            {!analyzed || !activePattern ? (
+            {!analyzed || !visiblePatterns.length ? (
               <div className="empty-state">
                 <h2>
                   {discoveryBusy
@@ -818,7 +1091,7 @@ export default function App() {
                   Choose histories <Arrow />
                 </button>
               </div>
-            ) : (
+            ) : analysisMode === "qm" ? (
               <div className="patterns-layout">
                 <section className="pattern-list" aria-label="Patterns">
                   <div className="panel-heading">
@@ -923,6 +1196,122 @@ export default function App() {
                     )}
                   </div>
                 </aside>
+              </div>
+            ) : (
+              <div className="ledger">
+                {visibleLedger.map((row) => {
+                  const open = expanded.has(row.id);
+                  const rowKind = patternAppKind(row);
+                  return (
+                    <Fragment key={row.id}>
+                      <article className="lrow">
+                        <div className="index">
+                          {String(row.rank).padStart(2, "0")}
+                        </div>
+                        <div className="ltext">
+                          <div className="lhead">
+                            <h3>{row.title}</h3>
+                            <div className="signal-tags" aria-label="Signals">
+                              {row.signalLabels.map((signal) => (
+                                <span key={signal.label} title={signal.def}>
+                                  {signal.label}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <p className="line">
+                            {row.line}{" "}
+                            <span className="who">
+                              {row.kind} · {row.who.join(", ")}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="lana">
+                          <Metrics row={row} />
+                          <Cadence row={row} />
+                          <div className="split">
+                            <button
+                              className="split-exp"
+                              aria-expanded={open}
+                              aria-controls={`plan-${row.id}`}
+                              aria-label={`${open ? "Collapse" : "Expand"} plan: ${row.title}`}
+                              onClick={() => toggleRow(row.id)}
+                            >
+                              <Chevron />
+                            </button>
+                            <button
+                              className="split-build"
+                              onClick={() => {
+                                if (rowKind) {
+                                  setActiveKind(rowKind);
+                                  setSelectedVersionId("");
+                                  navigate("apps");
+                                } else setModal({ kind: "brief", pattern: row });
+                              }}
+                            >
+                              {rowKind ? "Open app" : "Build tool"}
+                              <Arrow />
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                      {open && (
+                        <section
+                          className="lexp"
+                          id={`plan-${row.id}`}
+                          aria-label={`Plan for ${row.title}`}
+                        >
+                          {rowKind && <RegistryMatch targetKind={rowKind} pattern={row} />}
+                          <div>
+                            <h4 className="label">
+                              Outputs from the chats · {row.snapshots.length}
+                            </h4>
+                            <div className="strip">
+                              {row.snapshots.map((snap) => (
+                                <Shot
+                                  key={snap.id}
+                                  snap={snap}
+                                  onOpen={() =>
+                                    setModal({ kind: "snap", snap })
+                                  }
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="lexp-grid">
+                            <div>
+                              <h4 className="label">
+                                Proposed {row.kind.toLowerCase()}
+                              </h4>
+                              <PlanView row={row} />
+                            </div>
+                            <div className="lexp-sessions">
+                              <h4 className="label">Sessions</h4>
+                              <div className="repeats">
+                                {row.briefs.slice(0, 12).map((brief) => (
+                                  <div key={brief.id}>
+                                    <span>{brief.title}</span>
+                                    <span>
+                                      {brief.id} · {brief.dateLabel}
+                                    </span>
+                                  </div>
+                                ))}
+                                {row.briefs.length > 12 && (
+                                  <div>
+                                    <span className="muted">
+                                      and {row.briefs.length - 12} more
+                                    </span>
+                                    <span />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </section>
+                      )}
+                    </Fragment>
+                  );
+                })}
               </div>
             )}
           </>
@@ -1310,7 +1699,9 @@ export default function App() {
               ? "Source history"
               : modal.kind === "reset"
                 ? "Reset demo?"
-                : modal.pattern.title
+                : modal.kind === "snap"
+                  ? `${modal.snap.sessionId} · turn ${modal.snap.turn}`
+                  : modal.pattern.title
           }
           onClose={() => setModal(null)}
         >
@@ -1320,6 +1711,17 @@ export default function App() {
                 ? sourceJson
                 : getHistoryJson(modal.sourceId)}
             </pre>
+          )}
+          {modal.kind === "snap" && (
+            <>
+              <p className="caption muted">
+                {modal.snap.speaker} · {modal.snap.sessionTitle} ·{" "}
+                {modal.snap.atLabel}
+              </p>
+              <div className="md snap-full" tabIndex={0}>
+                <Markdown text={modal.snap.text} />
+              </div>
+            </>
           )}
           {modal.kind === "brief" && (
             <>
