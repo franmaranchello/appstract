@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   sources,
-  patterns,
   corpusStats,
   getHistoryJson,
   ledger,
@@ -94,7 +93,10 @@ function BrandMark() {
       aria-hidden="true"
       focusable="false"
     >
-      <path fill="var(--blue)" d="M0 0 491 0 607 329 607 509 498 509 358.7 107 0 107Z" />
+      <path
+        fill="var(--blue)"
+        d="M0 0 491 0 607 329 607 509 498 509 358.7 107 0 107Z"
+      />
       <path fill="var(--yellow)" d="M0 145h332l36.7 106H0z" />
       <path fill="var(--red)" d="M0 289h381.9l36.4 105H0z" />
       <path fill="var(--blue)" d="M0 425h429l29.1 84H0z" />
@@ -363,7 +365,7 @@ export default function App() {
   const [selectedSources, setSelectedSources] = useState(
     sources.map((source) => source.id),
   );
-  const [selectedPatternId, setSelectedPatternId] = useState("clash");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [analyzed, setAnalyzed] = useState(saved.analyzed);
   const [app, setApp] = useState<AppRecord | null>(saved.app);
   const [events, setEvents] = useState<RequestEvent[]>(saved.events);
@@ -389,12 +391,17 @@ export default function App() {
   const selected = sources.filter((source) =>
     selectedSources.includes(source.id),
   );
-  const visiblePatterns = patterns.filter((pattern) =>
-    selectedSources.includes(pattern.sourceId),
+  const visibleLedger = ledger.filter((row) =>
+    selectedSources.includes(row.sourceId),
   );
-  const activePattern =
-    visiblePatterns.find((pattern) => pattern.id === selectedPatternId) ||
-    visiblePatterns[0];
+  function toggleRow(id: string) {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
   const selectedVersion =
     app?.versions.find((version) => version.id === selectedVersionId) ||
     app?.versions.find((version) => version.id === app.currentVersionId);
@@ -428,7 +435,9 @@ export default function App() {
   const shouldDiscover =
     view === "apps" ||
     view === "request" ||
-    (view === "patterns" && analyzed && activePattern?.id === "clash");
+    (view === "patterns" &&
+      analyzed &&
+      visibleLedger.some((row) => row.id === "clash"));
   useEffect(() => {
     if (!shouldDiscover) return;
     const controller = new AbortController();
@@ -740,7 +749,7 @@ export default function App() {
                     disabled={!selectedSources.length}
                     onClick={() => {
                       setAnalyzed(true);
-                      setSelectedPatternId(visiblePatterns[0]?.id || "clash");
+                      setExpanded(new Set());
                       navigate("patterns");
                     }}
                   >
@@ -779,12 +788,10 @@ export default function App() {
         {view === "patterns" && (
           <>
             <div className="section-bar">
-              <h2>
-                {analyzed ? visiblePatterns.length : 0} recurring workflows
-              </h2>
+              <h2>{analyzed ? visibleLedger.length : 0} recurring workflows</h2>
               <span className="small-label">Prepared analysis</span>
             </div>
-            {!analyzed || !activePattern ? (
+            {!analyzed || visibleLedger.length === 0 ? (
               <div className="empty-state">
                 <h2>Select a history first</h2>
                 <button
@@ -795,96 +802,116 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="patterns-layout">
-                <section className="pattern-list" aria-label="Patterns">
-                  <div className="panel-heading">
-                    <span className="small-label">Pattern</span>
-                    <span className="small-label">Recurrence</span>
-                  </div>
-                  {visiblePatterns.map((pattern) => (
-                    <button
-                      className={`pattern-card ${activePattern.id === pattern.id ? "selected" : ""}`}
-                      key={pattern.id}
-                      onClick={() => setSelectedPatternId(pattern.id)}
-                      aria-pressed={activePattern.id === pattern.id}
-                    >
-                      <span className="pattern-number">0{pattern.rank}</span>
-                      <span className="pattern-content">
-                        <span className="small-label">{pattern.category}</span>
-                        <strong>{pattern.title}</strong>
-                        <span className="muted">{pattern.description}</span>
-                        <span className="pattern-metrics">
-                          <span className="mono">
-                            {pattern.sessionIds.length} sessions
-                          </span>
-                          <span>1 requester</span>
-                        </span>
-                      </span>
-                      <Arrow />
-                    </button>
-                  ))}
-                </section>
-                <aside className="evidence-panel">
-                  <div className="panel-heading">
-                    <h3>{activePattern.title}</h3>
-                  </div>
-                  <div className="panel-body">
-                    {activePattern.id === "clash" && <RegistryMatch />}
-                    <div className="metrics-row">
-                      <div>
-                        <strong>{activePattern.sessionIds.length}</strong>
-                        <span>Recurring sessions</span>
-                      </div>
-                      <div>
-                        <strong>1</strong>
-                        <span>Requester</span>
-                      </div>
-                    </div>
-                    <h3>Source requests</h3>
-                    {activePattern.evidence.slice(0, 3).map((evidence) => (
-                      <article className="evidence-card" key={evidence.id}>
-                        <div className="evidence-meta">
-                          <strong>{evidence.author.split(" ")[0]}</strong>
-                          <span className="mono">
-                            {evidence.sessionId} · {evidence.date}
-                          </span>
+              <div className="ledger">
+                {visibleLedger.map((row) => {
+                  const open = expanded.has(row.id);
+                  return (
+                    <Fragment key={row.id}>
+                      <article className="lrow">
+                        <div className="index">
+                          {String(row.rank).padStart(2, "0")}
                         </div>
-                        <blockquote className="quote">
-                          “{evidence.quote}”
-                        </blockquote>
+                        <div className="ltext">
+                          <div className="lhead">
+                            <h3>{row.title}</h3>
+                            <div className="eyebrow" aria-label="Signals">
+                              {row.signalLabels.map((signal) => (
+                                <span key={signal.label} title={signal.def}>
+                                  {signal.label}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <p className="line">
+                            {row.line}{" "}
+                            <span className="who">
+                              {row.kind} · {row.who.join(", ")}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="lana">
+                          <Metrics row={row} />
+                          <Cadence row={row} />
+                          <div className="split">
+                            <button
+                              className="split-exp"
+                              aria-expanded={open}
+                              aria-controls={`plan-${row.id}`}
+                              aria-label={`${open ? "Collapse" : "Expand"} plan: ${row.title}`}
+                              onClick={() => toggleRow(row.id)}
+                            >
+                              <Chevron />
+                            </button>
+                            <button
+                              className="split-build"
+                              onClick={() => {
+                                if (row.id === "clash") navigate("apps");
+                                else setModal({ kind: "brief", pattern: row });
+                              }}
+                            >
+                              {row.id === "clash" ? "Open app" : "Build tool"}
+                              <Arrow />
+                            </button>
+                          </div>
+                        </div>
                       </article>
-                    ))}
-                    <details className="pattern-scope">
-                      <summary>Workflow details</summary>
-                      <div className="detail-grid">
-                        <div>
-                          <span className="small-label">Input</span>
-                          <p>{activePattern.input}</p>
-                        </div>
-                        <div>
-                          <span className="small-label">Output</span>
-                          <p>{activePattern.output}</p>
-                        </div>
-                      </div>
-                      {activePattern.id === "clash" && (
-                        <p className="caption muted">
-                          The existing app checks sample geometry. It does not
-                          import or group Navisworks exports.
-                        </p>
+                      {open && (
+                        <section
+                          className="lexp"
+                          id={`plan-${row.id}`}
+                          aria-label={`Plan for ${row.title}`}
+                        >
+                          {row.id === "clash" && <RegistryMatch />}
+                          <div>
+                            <h4 className="label">
+                              Outputs from the chats · {row.snapshots.length}
+                            </h4>
+                            <div className="strip">
+                              {row.snapshots.map((snap) => (
+                                <Shot
+                                  key={snap.id}
+                                  snap={snap}
+                                  onOpen={() =>
+                                    setModal({ kind: "snap", snap })
+                                  }
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="lexp-grid">
+                            <div>
+                              <h4 className="label">
+                                Proposed {row.kind.toLowerCase()}
+                              </h4>
+                              <PlanView row={row} />
+                            </div>
+                            <div className="lexp-sessions">
+                              <h4 className="label">Sessions</h4>
+                              <div className="repeats">
+                                {row.briefs.slice(0, 12).map((brief) => (
+                                  <div key={brief.id}>
+                                    <span>{brief.title}</span>
+                                    <span>
+                                      {brief.id} · {brief.dateLabel}
+                                    </span>
+                                  </div>
+                                ))}
+                                {row.briefs.length > 12 && (
+                                  <div>
+                                    <span className="muted">
+                                      and {row.briefs.length - 12} more
+                                    </span>
+                                    <span />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </section>
                       )}
-                    </details>
-                    {activePattern.id !== "clash" && (
-                      <button
-                        className="button secondary full-width"
-                        onClick={() =>
-                          setModal({ kind: "brief", pattern: activePattern })
-                        }
-                      >
-                        View proposed app <Arrow />
-                      </button>
-                    )}
-                  </div>
-                </aside>
+                    </Fragment>
+                  );
+                })}
               </div>
             )}
           </>

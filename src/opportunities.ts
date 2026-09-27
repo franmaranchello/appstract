@@ -104,7 +104,7 @@ export const opportunities: Record<string, Opportunity> = {
         "Report by issue, never by raw clash",
         "IDs: PROJECT-LEVEL-DISCIPLINE PAIR-NN",
         'Ignore insulation clashes under 1/2"',
-        "Plenum under 10'-0\" AFF = P1; corridors need 8\" MEP clearance",
+        'Plenum under 10\'-0" AFF = P1; corridors need 8" MEP clearance',
         "Structural reviews, never owns the move",
         'Stale = carried 6+ weeks; "known / next model" is not closure',
       ],

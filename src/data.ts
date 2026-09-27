@@ -329,7 +329,10 @@ interface RawSession {
   turns: RawTurn[];
 }
 
-const sessionIndex = new Map<string, { session: RawSession; persona: string }>();
+const sessionIndex = new Map<
+  string,
+  { session: RawSession; persona: string }
+>();
 for (const history of histories) {
   for (const session of history.sessions as RawSession[]) {
     sessionIndex.set(session.id, {
@@ -354,9 +357,7 @@ const minutesIn = (session: RawSession) => {
     .map((turn) => Date.parse(turn.at || session.started_at))
     .filter((value) => Number.isFinite(value));
   if (stamps.length < 2) return 0;
-  return Math.round(
-    (Math.max(...stamps) - Math.min(...stamps)) / 60000,
-  );
+  return Math.round((Math.max(...stamps) - Math.min(...stamps)) / 60000);
 };
 
 export interface SessionBrief {
@@ -417,7 +418,9 @@ function snapshot(spec: SnapshotSpec): Snapshot {
             spec.match?.test(item.content),
         );
   if (!turn)
-    throw new Error(`Missing snapshot turn: ${spec.sid} / ${spec.n ?? spec.match}`);
+    throw new Error(
+      `Missing snapshot turn: ${spec.sid} / ${spec.n ?? spec.match}`,
+    );
   return {
     id: `${spec.sid}#${turn.n}`,
     sessionId: session.id,
@@ -435,7 +438,8 @@ function snapshot(spec: SnapshotSpec): Snapshot {
 
 export const ledger: LedgerRow[] = patterns.map((pattern) => {
   const opportunity = opportunities[pattern.id];
-  if (!opportunity) throw new Error(`No ledger copy for pattern: ${pattern.id}`);
+  if (!opportunity)
+    throw new Error(`No ledger copy for pattern: ${pattern.id}`);
   const briefs = pattern.sessionIds.map(brief);
   return {
     ...pattern,
@@ -465,7 +469,8 @@ export const metricScores: Record<string, Record<MetricKey, number>> = {};
 for (const key of ["sessions", "tokens", "minutes"] as MetricKey[]) {
   const ranked = [...ledger].sort((a, b) => b.metrics[key] - a.metrics[key]);
   ranked.forEach((row, index) => {
-    metricScores[row.id] = metricScores[row.id] || ({} as Record<MetricKey, number>);
+    metricScores[row.id] =
+      metricScores[row.id] || ({} as Record<MetricKey, number>);
     metricScores[row.id][key] = 5 - Math.floor((index * 5) / ranked.length);
   });
 }

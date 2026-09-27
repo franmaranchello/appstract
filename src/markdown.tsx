@@ -59,7 +59,8 @@ export function Markdown({ text }: { text: string }) {
     if (/^```/.test(line)) {
       const buffer: string[] = [];
       i++;
-      while (i < lines.length && !/^```/.test(lines[i])) buffer.push(lines[i++]);
+      while (i < lines.length && !/^```/.test(lines[i]))
+        buffer.push(lines[i++]);
       i++;
       out.push(<pre key={key}>{buffer.join("\n")}</pre>);
       continue;
@@ -69,9 +70,7 @@ export function Markdown({ text }: { text: string }) {
       while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(lines[i++]);
       out.push(
         table(
-          rows
-            .filter((row) => !/^\s*\|[\s:|-]+\|\s*$/.test(row))
-            .map(cells),
+          rows.filter((row) => !/^\s*\|[\s:|-]+\|\s*$/.test(row)).map(cells),
           key,
         ),
       );
