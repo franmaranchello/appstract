@@ -403,6 +403,11 @@ svg {
   padding-inline: 0;
   min-height: 44px;
 }
+.button.small {
+  min-height: 40px;
+  padding: 10px 16px;
+  gap: 8px;
+}
 .button:not(:disabled):hover {
   background: var(--ink);
   color: var(--paper);
@@ -628,147 +633,484 @@ svg {
   letter-spacing: 0.04em;
 }
 
-.patterns-layout {
+/* Patterns ledger: one row per opportunity, expandable to its evidence. */
+.ledger {
+  border-top: 2px solid var(--ink);
+}
+.lrow {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  border: 1px solid var(--rule);
-}
-.pattern-list {
-  min-width: 0;
-  border-right: 1px solid var(--rule);
-}
-.pattern-card {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 28px 28px;
-  text-align: left;
-  color: var(--ink);
-  background: var(--paper);
-  border: 0;
+  grid-template-columns: 40px minmax(0, 1fr);
+  column-gap: 24px;
+  row-gap: 16px;
+  align-items: start;
+  padding-block: 20px;
   border-bottom: 1px solid var(--rule);
 }
-.pattern-card:last-child {
-  border-bottom: 0;
-}
-.pattern-card:hover {
-  background: var(--paper-alt);
-}
-.pattern-card.selected {
-  background: var(--paper-alt);
-}
-.pattern-card.selected::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: var(--blue);
-}
-.pattern-number {
-  padding-top: 3px;
+.lrow > .index {
+  grid-row: 1;
   font:
-    400 13px/24px "IBM Plex Mono",
-    monospace;
+    500 16px/30px "Jost",
+    sans-serif;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
-.pattern-content {
-  min-width: 0;
-  flex: 1;
+.lrow[aria-current="true"] > .index {
+  color: var(--blue);
 }
-.pattern-content h3 {
-  font-size: 22px;
-  margin-bottom: 8px;
+.ltext {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  gap: 8px;
 }
-.pattern-content p {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 21px;
-  max-width: 390px;
-}
-.pattern-metrics {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-  margin-top: 20px;
-  font:
-    10px/16px "IBM Plex Mono",
-    monospace;
-  color: var(--muted);
-}
-.pattern-metrics > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.signal-bars {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 13px;
-}
-.signal-bars i,
-.signal-bars span {
-  width: 3px;
-  background: var(--blue);
-  height: 5px;
-}
-.signal-bars :nth-child(2) {
-  height: 8px;
-}
-.signal-bars :nth-child(3) {
-  height: 11px;
-}
-.signal-bars :nth-child(4) {
-  height: 14px;
-}
-.signal-bars .inactive {
-  background: var(--rule);
-}
-.evidence-panel {
-  padding: 28px 32px 32px;
-  min-width: 0;
-}
-.evidence-panel > h2 {
-  margin-top: 16px;
-  font-size: 28px;
-  line-height: 1.25;
-}
-.evidence-panel > p {
-  margin-top: 12px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 22px;
-}
-.evidence-panel > .button {
-  margin-top: 24px;
-  width: 100%;
-}
-.metrics-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 20px 0;
-  border-bottom: 1px solid var(--rule);
-  margin-bottom: 24px;
-}
-.metrics-row > div {
-  flex: 1;
-}
-.metrics-row strong {
-  display: block;
+.lrow h3 {
   font:
     700 24px/30px "Jost",
     sans-serif;
+  letter-spacing: -0.005em;
 }
-.metrics-row span {
-  display: block;
+.lrow .line {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 22px;
+}
+.lrow .who {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.lana {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 32px;
+  align-items: end;
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+}
+.lbuild {
+  grid-column: 2;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+}
+.lbuild-l {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.lbuild-l > .small-label {
+  color: var(--muted);
+  line-height: 22px;
+}
+.lbuild-l p {
+  font-size: 14px;
+  line-height: 22px;
+}
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blue);
   font:
-    10px/16px "IBM Plex Mono",
+    600 14px/22px "Archivo",
+    sans-serif;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.more:hover {
+  color: var(--ink);
+}
+.chevron {
+  transition: transform 0.18s;
+}
+.chevron.up {
+  transform: rotate(180deg);
+}
+.lexp {
+  display: grid;
+  gap: 32px;
+  padding-block: 32px 48px;
+  padding-left: 64px;
+  border-bottom: 1px solid var(--rule);
+}
+.lexp > *,
+.lexp-grid > * {
+  min-width: 0;
+}
+.lexp .small-label {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--muted);
+}
+.lexp-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+}
+.lexp-side .evidence-card:last-child {
+  border-bottom: 0;
+}
+.lexp-side .small-label + .repeats {
+  margin-bottom: 32px;
+}
+.strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 340px);
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+/* metrics: sessions, tokens, chat time */
+.mets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.met .k {
+  font:
+    600 10px/14px "Jost",
+    sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.met .v {
+  font:
+    800 20px/26px "Jost",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.met .v small {
+  margin-left: 2px;
+  font:
+    500 12px/16px "Jost",
+    sans-serif;
+  color: var(--muted);
+}
+.meter {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  margin-top: 4px;
+}
+.meter i {
+  height: 4px;
+  background: var(--rule);
+}
+.meter i.on {
+  background: var(--blue);
+}
+
+/* cadence strip */
+.cad {
+  position: relative;
+  height: 28px;
+  min-width: 0;
+}
+.cad-track {
+  position: absolute;
+  inset: 10px 0 auto 0;
+  height: 2px;
+  background: var(--rule);
+}
+.cad-dot {
+  position: absolute;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: var(--blue);
+}
+.cad-ticks {
+  position: absolute;
+  inset: 18px 0 auto 0;
+  display: flex;
+  justify-content: space-between;
+  font:
+    500 9px/10px "IBM Plex Mono",
     monospace;
   color: var(--muted);
+}
+
+/* screenshot frames */
+.shot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+}
+.shot-frame {
+  position: relative;
+  width: 100%;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+}
+.shot-frame:hover {
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.shot-open {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+.shot-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-alt);
+  font:
+    500 10px/14px "IBM Plex Mono",
+    monospace;
+  color: var(--muted);
+}
+.shot-bar b {
+  font-weight: 500;
+  color: var(--ink);
+}
+.shot-body {
+  display: block;
+  position: relative;
+  max-height: var(--shot-h, 220px);
+  overflow: hidden;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 16px;
+}
+.shot-body::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--paper));
+}
+.shot.user .shot-body {
+  background: var(--paper-alt);
+}
+.shot.user .shot-body::after {
+  background: linear-gradient(to bottom, transparent, var(--paper-alt));
+}
+.shot-flag {
+  position: absolute;
+  top: 30px;
+  right: 8px;
+  padding: 2px 6px;
+  background: var(--paper);
+  border: 1px solid var(--red);
+  color: var(--red);
+  font:
+    600 10px/14px "Jost",
+    sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.shot figcaption {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--muted);
+}
+
+/* markdown inside screenshots and the full-turn dialog */
+.md > * {
+  margin: 0 0 0.6em;
+}
+.md > *:last-child {
+  margin-bottom: 0;
+}
+.md .md-h {
+  font:
+    700 1.15em/1.3 "Archivo",
+    sans-serif;
+}
+.md table {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  width: max-content;
+  max-width: none;
+}
+.md th,
+.md td {
+  padding: 2px 6px;
+  border: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+.md th {
+  font-weight: 600;
+  background: var(--paper-alt);
+}
+.md pre {
+  margin: 0 0 0.6em;
+  font:
+    400 0.92em/1.45 "IBM Plex Mono",
+    monospace;
+  white-space: pre;
+  overflow: hidden;
+}
+.md code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.92em;
+}
+.md ul,
+.md ol {
+  padding-left: 1.3em;
+}
+.md blockquote {
+  margin: 0;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--rule);
+}
+.turn-view {
+  margin-top: 16px;
+  max-height: 60vh;
+  overflow: auto;
+  font-size: 14px;
+  line-height: 22px;
+}
+.turn-view pre {
+  overflow: auto;
+}
+
+/* proposed tool plan */
+.plan {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 24px;
+}
+.plan h4 {
+  margin-bottom: 8px;
+}
+.plan ul,
+.plan ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 21px;
+}
+.plan li {
+  position: relative;
+  padding-left: 18px;
+}
+.plan li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 8px;
+  height: 2px;
+  background: var(--ink);
+}
+.plan ol {
+  counter-reset: step;
+}
+.plan ol li {
+  padding-left: 28px;
+}
+.plan ol li::before {
+  counter-increment: step;
+  content: counter(step, decimal-leading-zero);
+  top: 0;
+  width: auto;
+  height: auto;
+  background: none;
+  font:
+    500 13px/21px "Jost",
+    sans-serif;
+  color: var(--muted);
+}
+.plan .full {
+  grid-column: 1 / -1;
+}
+.plan .full p {
+  font-size: 13px;
+  line-height: 21px;
+}
+.repeats {
+  display: grid;
+  gap: 4px;
+}
+.repeats > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding-block: 4px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  line-height: 21px;
+}
+.repeats span:last-child {
+  text-align: right;
+  color: var(--muted);
+  font:
+    400 12px/21px "IBM Plex Mono",
+    monospace;
+}
+
+@media (max-width: 1100px) {
+  .lana {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 24px;
+  }
+  .lexp-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+@media (max-width: 850px) {
+  .ledger {
+    margin-inline: -8px;
+  }
+  .lrow {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+  .lana,
+  .lbuild,
+  .lbuild-l,
+  .plan {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .lbuild-l {
+    gap: 4px;
+  }
+  .lbuild .button {
+    justify-content: center;
+  }
+  .lrow h3 {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .lrow > .index {
+    line-height: 26px;
+  }
+  .lexp {
+    padding-left: 32px;
+  }
 }
 .evidence-card {
   padding: 20px 0;
@@ -1439,15 +1781,10 @@ dialog.modal::backdrop {
     font-size: 10px;
   }
   .history-aside,
-  .evidence-panel,
   .composer-panel,
   .route-result,
   .app-card {
     padding: 24px;
-  }
-  .pattern-card {
-    padding: 24px;
-    gap: 16px;
   }
 }
 @media (max-width: 850px) {
@@ -1522,7 +1859,6 @@ dialog.modal::backdrop {
     right: 0;
   }
   .history-layout,
-  .patterns-layout,
   .request-layout {
     grid-template-columns: 1fr;
   }
@@ -1536,7 +1872,6 @@ dialog.modal::backdrop {
   .history-aside .notice {
     margin-top: 0;
   }
-  .pattern-list,
   .composer-panel {
     border-right: 0;
     border-bottom: 1px solid var(--rule);
@@ -1631,7 +1966,6 @@ dialog.modal::backdrop {
     margin-left: 0;
   }
   .history-aside,
-  .evidence-panel,
   .composer-panel,
   .route-result,
   .app-card,
@@ -1649,16 +1983,6 @@ dialog.modal::backdrop {
   }
   .action-bar > .button {
     width: 100%;
-  }
-  .pattern-card {
-    padding: 24px 20px;
-    gap: 12px;
-  }
-  .pattern-content h3 {
-    font-size: 21px;
-  }
-  .pattern-metrics {
-    gap: 8px 12px;
   }
   .detail-grid {
     gap: 20px;
@@ -1873,44 +2197,6 @@ dialog.modal::backdrop {
     monospace;
   color: var(--muted);
 }
-.pattern-content > .small-label {
-  display: block;
-  font-size: 9px;
-  line-height: 16px;
-  margin-bottom: 8px;
-  color: var(--muted);
-}
-.pattern-content > strong {
-  display: block;
-  font:
-    700 24px/28px "Jost",
-    sans-serif;
-  letter-spacing: -0.01em;
-  margin-bottom: 10px;
-}
-.pattern-content > .muted {
-  display: block;
-  font-size: 13px;
-  line-height: 21px;
-}
-.pattern-end {
-  display: flex;
-  align-self: stretch;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  padding-block: 4px;
-}
-.signal-bars i {
-  background: var(--rule);
-}
-.signal-bars i.filled {
-  background: var(--blue);
-}
-.signal-bars :nth-child(5) {
-  height: 17px;
-}
 .list-note {
   padding: 28px 32px;
 }
@@ -1920,50 +2206,8 @@ dialog.modal::backdrop {
   line-height: 20px;
   color: var(--muted);
 }
-.evidence-panel,
 .composer-panel {
   padding: 0;
-}
-.evidence-panel .panel-body > h2 {
-  font-size: 28px;
-  line-height: 32px;
-  margin-bottom: 12px;
-}
-.evidence-panel .panel-body > p {
-  font-size: 13px;
-  line-height: 22px;
-}
-.signal-list {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 28px;
-}
-.signal-list > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  line-height: 18px;
-  padding: 5px 8px;
-  border: 1px solid var(--rule);
-}
-.signal-list > span > span {
-  color: var(--blue);
-}
-.evidence-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 4px;
-}
-.evidence-heading h3 {
-  font-size: 18px;
-}
-.evidence-heading > .mono {
-  font-size: 9px;
-  color: var(--muted);
 }
 .full-width {
   width: 100%;
@@ -2357,18 +2601,8 @@ button.version-item:hover {
   .panel-heading .ghost {
     font-size: 10px;
   }
-  .evidence-panel,
   .composer-panel {
     padding: 0;
-  }
-  .pattern-content > strong {
-    font-size: 22px;
-  }
-  .pattern-end {
-    gap: 16px;
-  }
-  .evidence-heading {
-    flex-wrap: wrap;
   }
   .app-card > h2 {
     font-size: 32px;

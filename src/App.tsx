@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   sources,
   patterns,
   corpusStats,
+  corpusWindow,
+  metricScores,
   getHistoryJson,
   type Pattern,
+  type Snapshot,
 } from "./data";
+import { markdown } from "./markdown";
 import {
   createDemoApp,
   extendApp,
@@ -19,6 +23,7 @@ type View = "history" | "patterns" | "apps" | "request";
 type ModalKind =
   | { kind: "json"; sourceId: string }
   | { kind: "brief"; pattern: Pattern }
+  | { kind: "snap"; snap: Snapshot }
   | { kind: "connect" }
   | { kind: "reset" }
   | null;
@@ -44,6 +49,23 @@ function Arrow({ diagonal = false }: { diagonal?: boolean }) {
     </span>
   );
 }
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`chevron ${open ? "up" : ""}`}
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="square"
+      aria-hidden="true"
+    >
+      <path d="M3.5 6l4.5 4.5L12.5 6" />
+    </svg>
+  );
+}
 function GeometricArt() {
   return (
     <div className="intro-art" aria-hidden="true">
@@ -51,6 +73,214 @@ function GeometricArt() {
       <div className="art-red" />
       <div className="art-yellow" />
       <span className="art-caption mono">RECOGNIZE. REUSE. REPEAT.</span>
+    </div>
+  );
+}
+const MONTH_NAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const dayLabel = (iso: string) => {
+  const date = new Date(`${iso.slice(0, 10)}T12:00:00Z`);
+  return `${date.getUTCDate()} ${MONTH_NAMES[date.getUTCMonth()]}`;
+};
+const METRICS = [
+  {
+    key: "sessions" as const,
+    label: "Sessions",
+    tip: "Sessions where this job came up",
+    format: (value: number) => <>{value}</>,
+  },
+  {
+    key: "tokens" as const,
+    label: "Tokens",
+    tip: "Transcript tokens across those sessions (characters / 4)",
+    format: (value: number) =>
+      value >= 1000 ? (
+        <>
+          {(value / 1000).toFixed(1)}
+          <small>k</small>
+        </>
+      ) : (
+        <>{value}</>
+      ),
+  },
+  {
+    key: "minutes" as const,
+    label: "Chat time",
+    tip: "Elapsed time from first to last turn, summed",
+    format: (value: number) =>
+      value >= 60 ? (
+        <>
+          {(value / 60).toFixed(1)}
+          <small>h</small>
+        </>
+      ) : (
+        <>
+          {value}
+          <small>m</small>
+        </>
+      ),
+  },
+];
+function Metrics({ pattern }: { pattern: Pattern }) {
+  return (
+    <div className="mets">
+      {METRICS.map((metric) => {
+        const score = metricScores[pattern.id][metric.key];
+        return (
+          <div
+            className="met"
+            key={metric.key}
+            title={`${metric.tip}, score ${score} of 5`}
+          >
+            <div className="k">{metric.label}</div>
+            <div className="v">
+              {metric.format(pattern.metrics[metric.key])}
+            </div>
+            <div
+              className="meter"
+              role="img"
+              aria-label={`Score ${score} of 5`}
+            >
+              {[1, 2, 3, 4, 5].map((step) => (
+                <i key={step} className={step <= score ? "on" : ""} />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+const WINDOW_START = Date.parse(corpusWindow.start);
+const WINDOW_END = Date.parse(corpusWindow.end);
+function Cadence({ pattern, large }: { pattern: Pattern; large?: boolean }) {
+  const at = (date: string) =>
+    ((Date.parse(date) - WINDOW_START) / (WINDOW_END - WINDOW_START)) * 100;
+  const months: string[] = [];
+  const cursor = new Date(`${corpusWindow.start.slice(0, 8)}01T12:00:00Z`);
+  const last = new Date(`${corpusWindow.end.slice(0, 8)}01T12:00:00Z`);
+  while (cursor <= last) {
+    months.push(MONTH_NAMES[cursor.getUTCMonth()]);
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+  }
+  return (
+    <div
+      className={`cad ${large ? "lg" : ""}`}
+      role="img"
+      aria-label={`${pattern.sessions.length} sessions between ${dayLabel(corpusWindow.start)} and ${dayLabel(corpusWindow.end)}`}
+    >
+      <div className="cad-track" />
+      {pattern.sessions.map((session) => (
+        <span
+          key={session.id}
+          className="cad-dot"
+          style={{ left: `${at(session.date).toFixed(2)}%` }}
+          title={`${session.id} · ${dayLabel(session.date)} · ${session.title}`}
+        />
+      ))}
+      <div className="cad-ticks">
+        {months.map((month, index) => (
+          <span key={`${month}-${index}`}>{month[0]}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+function Shot({
+  snap,
+  chars = 1400,
+  onOpen,
+}: {
+  snap: Snapshot;
+  chars?: number;
+  onOpen: (snap: Snapshot) => void;
+}) {
+  return (
+    <figure className={`shot ${snap.role === "user" ? "user" : ""}`}>
+      <div className="shot-frame">
+        <div className="shot-bar">
+          <b>{snap.speaker}</b>
+          <span>
+            {snap.sessionId} · {dayLabel(snap.at)}
+          </span>
+        </div>
+        <div className="shot-body md">
+          {markdown(snap.text.slice(0, chars))}
+        </div>
+        {snap.flag && <span className="shot-flag">{snap.flag}</span>}
+        <button
+          className="shot-open"
+          onClick={() => onOpen(snap)}
+          aria-label={`Open the full turn: ${snap.caption}`}
+        />
+      </div>
+      <figcaption>{snap.caption}</figcaption>
+    </figure>
+  );
+}
+function ToolPlanView({ pattern }: { pattern: Pattern }) {
+  const { plan } = pattern;
+  return (
+    <div className="plan">
+      <div>
+        <h4 className="small-label">Inputs</h4>
+        <ul>
+          {plan.inputs.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h4 className="small-label">Outputs</h4>
+        <ul>
+          {plan.outputs.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h4 className="small-label">Rules it enforces</h4>
+        <ul>
+          {plan.rules.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h4 className="small-label">Build plan</h4>
+        <ol>
+          {plan.steps.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
+      </div>
+      <div className="full">
+        <h4 className="small-label">Cost they reported</h4>
+        <p>{pattern.cost}</p>
+      </div>
+      <div className="full">
+        <h4 className="small-label">What repeats</h4>
+        <div className="repeats">
+          {pattern.repeats.map(([shape, count]) => (
+            <div key={shape}>
+              <span>{shape}</span>
+              <span>{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -99,6 +329,7 @@ export default function App() {
     sources.map((source) => source.id),
   );
   const [selectedPatternId, setSelectedPatternId] = useState("clash");
+  const [expanded, setExpanded] = useState<string[]>([]);
   const [analyzed, setAnalyzed] = useState(saved.analyzed);
   const [app, setApp] = useState<AppRecord | null>(saved.app);
   const [selectedVersionId, setSelectedVersionId] = useState(
@@ -130,6 +361,15 @@ export default function App() {
     const timeout = window.setTimeout(() => setToast(""), 4500);
     return () => window.clearTimeout(timeout);
   }, [toast]);
+  // Arriving from another view with a pattern in hand opens that row's evidence.
+  useEffect(() => {
+    if (view !== "patterns") return;
+    setExpanded((current) =>
+      current.includes(selectedPatternId)
+        ? current
+        : [...current, selectedPatternId],
+    );
+  }, [view, selectedPatternId]);
   const selected = sources.filter((source) =>
     selectedSources.includes(source.id),
   );
@@ -207,6 +447,16 @@ export default function App() {
   }
   function showBrief(pattern: Pattern) {
     setModal({ kind: "brief", pattern });
+  }
+  function toggleRow(patternId: string) {
+    setExpanded((current) =>
+      current.includes(patternId)
+        ? current.filter((id) => id !== patternId)
+        : [...current, patternId],
+    );
+  }
+  function openSnap(snap: Snapshot) {
+    setModal({ kind: "snap", snap });
   }
   const pageInfo = {
     history: [
@@ -477,135 +727,141 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="patterns-layout">
-                <section
-                  className="pattern-list"
-                  aria-label="Suggested app opportunities"
-                >
-                  <div className="panel-heading">
-                    <span className="small-label">
-                      Opportunity / recurring sessions
-                    </span>
-                    <span className="mono">{visiblePatterns.length} found</span>
-                  </div>
-                  {visiblePatterns.map((pattern) => (
-                    <button
-                      key={pattern.id}
-                      className={`pattern-card ${activePattern.id === pattern.id ? "selected" : ""}`}
-                      onClick={() => setSelectedPatternId(pattern.id)}
-                      aria-pressed={activePattern.id === pattern.id}
-                    >
-                      <span className="pattern-number">
-                        {pattern.rank.toString().padStart(2, "0")}
-                      </span>
-                      <span className="pattern-content">
-                        <span className="small-label">{pattern.category}</span>
-                        <strong>{pattern.title}</strong>
-                        <span className="muted">{pattern.description}</span>
-                        <span className="pattern-metrics">
-                          <span className="mono">
-                            {pattern.sessionIds.length} recurring sessions
-                          </span>
-                          <span>1 teammate</span>
-                        </span>
-                      </span>
-                      <span className="pattern-end">
-                        <span
-                          className="signal-bars"
-                          aria-label={`${pattern.sessionIds.length} selected evidence sessions`}
-                        >
-                          {[0, 1, 2, 3, 4].map((i) => (
-                            <i
-                              key={i}
-                              className={
-                                i <
-                                Math.min(
-                                  5,
-                                  Math.ceil(pattern.sessionIds.length / 3),
-                                )
-                                  ? "filled"
-                                  : ""
-                              }
-                            />
-                          ))}
-                        </span>
-                        <Arrow />
-                      </span>
-                    </button>
-                  ))}
-                  <div className="list-note">
-                    <span className="small-label">A signal, not a guess</span>
-                    <p>
-                      Repeated sessions count once per task. Follow-up messages
-                      and assistant replies don't inflate the signal.
-                    </p>
-                  </div>
-                </section>
-                <aside className="evidence-panel">
-                  <div className="panel-heading">
-                    <span className="small-label">Inside the pattern</span>
-                    <span className="tag">Evidence</span>
-                  </div>
-                  <div className="panel-body">
-                    <h2>{activePattern.title}</h2>
-                    <p className="muted">{activePattern.outcome}</p>
-                    <div className="metrics-row">
-                      <div>
-                        <strong>{activePattern.sessionIds.length}</strong>
-                        <span>Recurring sessions</span>
-                      </div>
-                      <div>
-                        <strong>01</strong>
-                        <span>Requester</span>
-                      </div>
-                    </div>
-                    <div className="signal-list">
-                      {activePattern.signals.map((signal) => (
-                        <span key={signal}>
-                          <span aria-hidden="true">↗</span>
-                          {signal}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="evidence-heading">
-                      <h3>In their own words</h3>
-                      <span className="mono">SOURCE EXCERPTS</span>
-                    </div>
-                    {activePattern.evidence.slice(0, 3).map((evidence) => (
-                      <article className="evidence-card" key={evidence.id}>
-                        <div className="evidence-meta">
-                          <strong>{evidence.author.split(" ")[0]}</strong>
-                          <span className="mono">
-                            {evidence.sessionId} ·{" "}
-                            {new Date(evidence.date).toLocaleDateString(
-                              "en-US",
-                              { month: "short", day: "numeric" },
-                            )}
-                          </span>
+              <div className="ledger">
+                {visiblePatterns.map((pattern, index) => {
+                  const open = expanded.includes(pattern.id);
+                  return (
+                    <Fragment key={pattern.id}>
+                      <article
+                        className="lrow"
+                        aria-current={
+                          pattern.id === selectedPatternId ? "true" : undefined
+                        }
+                      >
+                        <div className="index">
+                          {String(index + 1).padStart(2, "0")}
                         </div>
-                        <blockquote className="quote">
-                          “{evidence.quote}”
-                        </blockquote>
+                        <div className="ltext">
+                          <div className="lhead">
+                            <h3>{pattern.title}</h3>
+                          </div>
+                          <p className="line">
+                            {pattern.line}{" "}
+                            <span className="who">
+                              {pattern.kind} · {pattern.who.join(", ")} ·{" "}
+                              {pattern.category}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="lana">
+                          <Metrics pattern={pattern} />
+                          <Cadence pattern={pattern} />
+                        </div>
+                        <div className="lbuild">
+                          <div className="lbuild-l">
+                            <span className="small-label">Proposal</span>
+                            <p>
+                              {pattern.build}
+                              <button
+                                className="more"
+                                onClick={() => toggleRow(pattern.id)}
+                                aria-expanded={open}
+                                aria-label={`${open ? "Less" : "More"}: ${pattern.title} plan and evidence`}
+                              >
+                                {open ? "Less" : "More"}
+                                <Chevron open={open} />
+                              </button>
+                            </p>
+                          </div>
+                          <button
+                            className="button primary small"
+                            onClick={() => showBrief(pattern)}
+                          >
+                            Build tool <Arrow />
+                          </button>
+                        </div>
                       </article>
-                    ))}
-                    <div className="detail-grid">
-                      <div className="detail-item">
-                        <span className="small-label">Input</span>
-                        <p>{activePattern.input}</p>
-                      </div>
-                      <div className="detail-item">
-                        <span className="small-label">Output</span>
-                        <p>{activePattern.output}</p>
-                      </div>
-                    </div>
-                    <button
-                      className="button primary full-width"
-                      onClick={() => showBrief(activePattern)}
-                    >
-                      Review app brief <Arrow />
-                    </button>
-                  </div>
-                </aside>
+                      {open && (
+                        <section
+                          className="lexp"
+                          aria-label={`Plan for ${pattern.title}`}
+                        >
+                          <div>
+                            <h4 className="small-label">
+                              Outputs from the chats · {pattern.snaps.length}
+                            </h4>
+                            <div className="strip">
+                              {pattern.snaps.map((snap) => (
+                                <Shot
+                                  key={snap.id}
+                                  snap={snap}
+                                  onOpen={openSnap}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="lexp-grid">
+                            <div>
+                              <h4 className="small-label">
+                                Proposed {pattern.kind.toLowerCase()} · effort{" "}
+                                {pattern.plan.effort}
+                              </h4>
+                              <ToolPlanView pattern={pattern} />
+                            </div>
+                            <div className="lexp-side">
+                              <h4 className="small-label">
+                                Sessions · {pattern.sessions.length}
+                              </h4>
+                              <div className="repeats">
+                                {pattern.sessions.map((session) => (
+                                  <div key={session.id}>
+                                    <span>{session.title}</span>
+                                    <span>
+                                      {session.id} · {dayLabel(session.date)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                              <h4 className="small-label">
+                                In their own words
+                              </h4>
+                              {pattern.evidence.slice(0, 2).map((evidence) => (
+                                <article
+                                  className="evidence-card"
+                                  key={evidence.id}
+                                >
+                                  <div className="evidence-meta">
+                                    <strong>
+                                      {evidence.author.split(" ")[0]}
+                                    </strong>
+                                    <span className="mono">
+                                      {evidence.sessionId}
+                                    </span>
+                                  </div>
+                                  <blockquote className="quote">
+                                    “{evidence.quote}”
+                                  </blockquote>
+                                </article>
+                              ))}
+                            </div>
+                          </div>
+                        </section>
+                      )}
+                    </Fragment>
+                  );
+                })}
+                <div className="list-note">
+                  <span className="small-label">A signal, not a guess</span>
+                  <p>
+                    Tokens count the transcript text in each opportunity's
+                    sessions (characters divided by four); chat time runs from
+                    the first turn to the last. Scores rank the four
+                    opportunities against each other, 5 highest. Every
+                    screenshot is a real turn from{" "}
+                    <span className="mono">chat-histories/json</span>, cut to
+                    fit — open one to read the whole thing.
+                  </p>
+                </div>
               </div>
             )}
           </>
@@ -1009,12 +1265,27 @@ export default function App() {
               ? "Source history / JSON"
               : modal.kind === "brief"
                 ? "A brief for your next app"
-                : modal.kind === "connect"
-                  ? "Connect the app preview"
-                  : "Start a fresh demo"
+                : modal.kind === "snap"
+                  ? "The turn, in full"
+                  : modal.kind === "connect"
+                    ? "Connect the app preview"
+                    : "Start a fresh demo"
           }
           onClose={() => setModal(null)}
         >
+          {modal.kind === "snap" && (
+            <>
+              <div className="evidence-meta">
+                <strong>{modal.snap.speaker}</strong>
+                <span className="mono">
+                  {modal.snap.sessionId} · turn {modal.snap.turn} ·{" "}
+                  {dayLabel(modal.snap.at)}
+                </span>
+              </div>
+              <p className="muted">{modal.snap.caption}</p>
+              <div className="md turn-view">{markdown(modal.snap.text)}</div>
+            </>
+          )}
           {modal.kind === "json" && (
             <>
               <p className="muted">

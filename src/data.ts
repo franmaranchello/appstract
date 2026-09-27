@@ -2,6 +2,13 @@ import clashHistory from "../chat-histories/json/01-clash-detection-priya-raghun
 import financeHistory from "../chat-histories/json/02-project-finance-marcus-oyelaran.json";
 import vendorHistory from "../chat-histories/json/03-vendor-review-dana-whitfield.json";
 import submittalHistory from "../chat-histories/json/04-specs-submittals-tomas-ferreira.json";
+import {
+  opportunities,
+  type SnapshotSpec,
+  type ToolPlan,
+} from "./opportunities";
+
+export type { ToolPlan };
 
 export interface HistorySource {
   id: string;
@@ -23,6 +30,29 @@ export interface Evidence {
   quote: string;
   author: string;
 }
+export interface SessionBrief {
+  id: string;
+  title: string;
+  date: string;
+  persona: string;
+  project: string;
+}
+export interface Snapshot {
+  id: string;
+  sessionId: string;
+  turn: number;
+  role: "user" | "assistant";
+  speaker: string;
+  at: string;
+  text: string;
+  caption: string;
+  flag: string | null;
+}
+export interface PatternMetrics {
+  sessions: number;
+  tokens: number;
+  minutes: number;
+}
 export interface Pattern {
   id: string;
   rank: number;
@@ -37,6 +67,17 @@ export interface Pattern {
   output: string;
   evidence: Evidence[];
   signals: string[];
+  // Ledger fields: curated proposal copy plus evidence resolved from the corpus.
+  kind: string;
+  who: string[];
+  line: string;
+  build: string;
+  cost: string;
+  repeats: [shape: string, count: string][];
+  plan: ToolPlan;
+  sessions: SessionBrief[];
+  snaps: Snapshot[];
+  metrics: PatternMetrics;
 }
 
 // Prepared, manually curated analysis of the checked-in synthetic corpus.
@@ -167,18 +208,110 @@ function evidence(
 
 type CuratedPattern = Omit<
   Pattern,
-  "evidence" | "sessionIds" | "frequencyLabel"
+  | "evidence"
+  | "sessionIds"
+  | "frequencyLabel"
+  | "kind"
+  | "who"
+  | "line"
+  | "build"
+  | "cost"
+  | "repeats"
+  | "plan"
+  | "sessions"
+  | "snaps"
+  | "metrics"
 > & {
   selections: [sessionId: string, marker: string][];
 };
+
+// Every session in the corpus, keyed by id, with the speaker names the
+// ledger screenshots need.
+const sessionIndex = new Map(
+  histories.flatMap((history) =>
+    history.sessions.map(
+      (session) =>
+        [
+          session.id,
+          { session, persona: history.persona.name.split(" ")[0] },
+        ] as const,
+    ),
+  ),
+);
+function lookup(sessionId: string) {
+  const entry = sessionIndex.get(sessionId);
+  if (!entry) throw new Error(`Unknown session: ${sessionId}`);
+  return entry;
+}
+// Tokens ≈ characters / 4 over every turn; chat time is first turn to last.
+const tokensIn = (session: { turns: { content: string }[] }) =>
+  session.turns.reduce(
+    (sum, turn) => sum + Math.ceil(turn.content.length / 4),
+    0,
+  );
+const minutesIn = (session: { turns: { at: string }[] }) =>
+  (Date.parse(session.turns[session.turns.length - 1].at) -
+    Date.parse(session.turns[0].at)) /
+  60000;
+
+function brief(sessionId: string): SessionBrief {
+  const { session, persona } = lookup(sessionId);
+  return {
+    id: session.id,
+    title: session.title,
+    date: session.started_at.slice(0, 10),
+    persona,
+    project: session.project,
+  };
+}
+function snapshot(spec: SnapshotSpec): Snapshot {
+  const { session, persona } = lookup(spec.sid);
+  const turn = spec.match
+    ? session.turns.find(
+        (item) =>
+          (!spec.role || item.role === spec.role) &&
+          spec.match!.test(item.content),
+      )
+    : session.turns.find((item) => item.n === spec.n);
+  if (!turn) throw new Error(`Missing prepared turn in ${spec.sid}`);
+  return {
+    id: `${session.id}/${turn.n}`,
+    sessionId: session.id,
+    turn: turn.n,
+    role: turn.role === "user" ? "user" : "assistant",
+    speaker: turn.role === "user" ? persona : session.model,
+    at: turn.at || session.started_at,
+    text: turn.content.slice(0, 3200),
+    caption: spec.cap,
+    flag: spec.flag || null,
+  };
+}
+
 function prepare({ selections, ...pattern }: CuratedPattern): Pattern {
+  const opportunity = opportunities[pattern.id];
+  if (!opportunity)
+    throw new Error(`Missing ledger content for pattern: ${pattern.id}`);
+  const sessionIds = selections.map(([id]) => id);
   return {
     ...pattern,
-    sessionIds: selections.map(([id]) => id),
+    ...opportunity,
+    sessionIds,
     frequencyLabel: `${selections.length} sessions · 1 requester`,
     evidence: selections.map(([sessionId, marker]) =>
       evidence(pattern.sourceId, sessionId, marker),
     ),
+    sessions: sessionIds.map(brief),
+    snaps: opportunity.snaps.map(snapshot),
+    metrics: {
+      sessions: sessionIds.length,
+      tokens: sessionIds.reduce(
+        (sum, id) => sum + tokensIn(lookup(id).session),
+        0,
+      ),
+      minutes: Math.round(
+        sessionIds.reduce((sum, id) => sum + minutesIn(lookup(id).session), 0),
+      ),
+    },
   };
 }
 
@@ -306,3 +439,31 @@ export const patterns: Pattern[] = [
     ],
   }),
 ];
+
+const corpusDates = [...sessionIndex.values()]
+  .map((entry) => entry.session.started_at.slice(0, 10))
+  .sort();
+export const corpusWindow = {
+  start: corpusDates[0],
+  end: corpusDates[corpusDates.length - 1],
+};
+
+// Each measure is ranked across the patterns, 5 highest, so the meters compare
+// the opportunities with each other rather than against an invented target.
+export const metricScores: Record<
+  string,
+  Record<keyof PatternMetrics, number>
+> = {};
+for (const key of ["sessions", "tokens", "minutes"] as const) {
+  [...patterns]
+    .sort((a, b) => b.metrics[key] - a.metrics[key])
+    .forEach((pattern, index) => {
+      metricScores[pattern.id] = metricScores[pattern.id] || {
+        sessions: 0,
+        tokens: 0,
+        minutes: 0,
+      };
+      metricScores[pattern.id][key] =
+        5 - Math.floor((index * 5) / patterns.length);
+    });
+}

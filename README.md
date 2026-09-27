@@ -34,7 +34,7 @@ npm run preview
 
 ## Demo walkthrough
 
-1. Select histories → **Find patterns** → **Clash issue triage** → **Review app brief**.
+1. Select histories → **Find patterns** → open **Clash issue triage** with **More** → **Build tool**.
 2. Read the team-selected sample-clash scope → **Add demo app**.
 3. Open **New request**, choose the color-blind-friendly example, then **Find the right app** → **Create v2 configuration**.
 4. The catalog retains v1 and shows v2 on the same app. Repeat the request to see REUSE. Try the XML example to see CLARIFY.
@@ -54,7 +54,9 @@ The launch URL fragment contains `appId`, `appVersionId`, `sourceRequestId`, `mo
 |---|---|
 | `src/App.tsx` | Views, interactions, dialogs and local state |
 | `src/styles.css` | Modul tokens, layouts and responsive styling |
-| `src/data.ts` | Prepared patterns and source-backed evidence |
+| `src/data.ts` | Prepared patterns, derived metrics and source-backed evidence |
+| `src/opportunities.ts` | Ledger copy per pattern: proposal, plan, cost and which turns to show |
+| `src/markdown.tsx` | The small markdown subset used to render corpus turns |
 | `src/domain.ts` | Demo routing, app versions, validation and launch URL |
 | `chat-histories/json/` | Original supplied synthetic conversations |
 
