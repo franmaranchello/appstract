@@ -10,6 +10,11 @@ Your team's chat history is full of work worth keeping: the same report rebuilt 
 
 **[Try the demo →](https://appstract-nine.vercel.app)**
 
+Demo app repositories:
+
+- [Clash detection](https://github.com/franmaranchello/bauhaus-clash-detection) — sample building clash checks and a versioned accessibility adaptation.
+- [Vendor approval](https://github.com/alexselig/bauhaus-vendor-approval) — vendor intake, document and security checks, and human approval.
+
 ## The idea
 
 **MONITOR** existing chat activity → **IDENTIFY** repeated inputs, actions and outputs → **BUILD** tools, apps and output automations → **DISCOVER & ADAPT** use or modify what already works.
