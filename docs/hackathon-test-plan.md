@@ -1,15 +1,22 @@
-# Appstract — final 15-minute rehearsal
+# Connected demo rehearsal
 
-Current 90-minute scope; all application checks pending. Only corpus JSON parsing/counts and duplicate source-ID checks have run during planning.
+Start Appstract on 5173 and the clash app on 5186 (production previews: 4173 and 4186).
 
-1. Import/select actual HRA JSON; show synthetic label and correct selected coverage. Quotes resolve to the original persona/session/turn. Markdown copies and older dataset revisions do not double counts.
-2. Open one pattern with actual evidence. Prepared analysis, if used, is labeled; no live-model claim. Team-selected sample clash demo scope is distinct from XML triage evidence.
-3. Approve the brief; register/create the app truthfully. Open v1 in the separate app with the agreed IDs and baseline mode. Parent records opened, not unobserved run success.
-4. Exact compatible repeat reuses v1 without new version. XML triage does not silently match the sample geometry app.
-5. Accessibility request selects an actual non-color capability/configuration extension: same app ID, v2, v1 still openable. App repo verifies same sample/rule gives identical clash IDs/counts with different presentation.
-6. Reload Appstract; catalog and version metadata remain. Bad launch fields, missing provider and failed analysis stay visible errors; no silent success fixture.
-7. If claiming QM, show observed run/revision. If claiming GBrain, show actual saved app summary retrieved in a fresh request. Otherwise show not connected. No credentials in browser bundle or URL.
-8. Quick keyboard, narrow-screen and contrast check using Modul. Labels/actions/version/sample state remain visible; new-tab behavior works.
-9. Rehearse the complete story three times; fix only blockers. Capture a clearly labeled fallback recording and state which parts are prepared/live.
+1. Reset demo. Select histories → **Find patterns** → **Clash coordination**. Confirm **Existing app found**, with no connection or registration form.
+2. **Open app**. The separate app opens v1 and computes six sample clashes. Confirm baseline presentation and **Back to Appstract**.
+3. Return. Use Claudia’s color-blind example → **Find app** → **Extend app & open v2**. Confirm the same app opens v2 with labels, numbered shapes and hatching.
+4. Return and repeat the request. Confirm reuse, two versions only, and Claudia’s request in the app history. Reopen v1 from version history; baseline presentation remains available.
+5. Try the XML example. It asks for clarification instead of routing an unsupported file task to the sample geometry app.
+6. Check narrow screens and keyboard navigation. Reset before the live presentation.
 
-Do not add a broad integration test framework in the remaining window. Add targeted automated checks only where they protect actual routing/version or evidence behavior and are quicker than repeated manual verification. Sample computation tests live in the app repo. The comprehensive future test matrix is archived in `.context/plans/archive/full-base-test-plan.md`.
+## Verified locally
+
+- Both production builds; 15 parent domain/discovery tests and 67 generated-app tests.
+- Browser journey through both running apps: discovery, v1, extension to v2, repeat reuse, persistence after return and v1 reopening.
+- Same six clash pairs in both presentations; v2 adds non-color encoding.
+- Appstract and generated app reflow at 320px without horizontal overflow.
+- A simulated browser-storage failure blocks navigation and keeps versions in the parent; it cannot silently lose v2 on return.
+- Skip links preserve the current route/version. XML requests show clarification.
+- Manifest validation, failed requests and timeout behavior are covered by parent tests; malformed launch/version/return fields by generated-app tests.
+
+Headless Chromium lacked WebGL, so visual browser checks used the plan fallback. Real GPU rendering was not re-verified. This is a prepared sample/configuration demo; it does not demonstrate generated code, live model inference, QM or GBrain integration.
